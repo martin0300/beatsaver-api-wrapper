@@ -9,7 +9,7 @@ const testUserID = 58338;
 var bsApi = new BeatSaverAPI("beatbrowser/1.0");
 
 bsApi
-    .getMapsFromUserID(testUserID, 1000000)
+    .getMapInfoFromHashList(testHashes)
     .then(function (data) {
         console.log(data);
     })

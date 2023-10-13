@@ -113,6 +113,7 @@ class BeatSaverAPI {
     /*
     Returns "notanarray" if the passed argument is not an array.
     Returns "emptyarray" if the passed array is empty.
+    Returns "toolargearray" if the passed array has more elements than 50.
     Returns "fetcherror" in case of any errors. (404, ENOTFOUND)
     Returns false if no maps could be found. (Data is null)
     Returns true if maps had been found.
@@ -129,6 +130,10 @@ class BeatSaverAPI {
             }
             if (idList.length == 0) {
                 apiResponse.status = "emptyarray";
+                reject(apiResponse);
+            }
+            if (idList.length > 50) {
+                apiResponse.status = "toolargearray";
                 reject(apiResponse);
             }
             axios({
@@ -175,6 +180,7 @@ class BeatSaverAPI {
     /*
     Returns "notanarray" if the passed argument is not an array.
     Returns "emptyarray" if the passed array is empty.
+    Returns "toolargearray" if the passed array has more elements than 50.
     Returns "fetcherror" in case of any errors. (404, ENOTFOUND)
     Returns false if no maps could be found. (Data is null)
     Returns true if maps had been found.
@@ -191,6 +197,10 @@ class BeatSaverAPI {
             }
             if (idList.length == 0) {
                 apiResponse.status = "emptyarray";
+                reject(apiResponse);
+            }
+            if (idList.length > 50) {
+                apiResponse.status = "toolargearray";
                 reject(apiResponse);
             }
             axios({
@@ -215,7 +225,7 @@ class BeatSaverAPI {
                 .catch(function (error) {
                     switch (error.code) {
                         case "ERR_BAD_REQUEST":
-                            apiResponse.status = "fetcherror";
+                            apiResponse.status = false;
                             break;
 
                         case "ENOTFOUND":
