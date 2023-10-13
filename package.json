@@ -1,0 +1,19 @@
+{
+  "name": "beatsaver-api-wrapper",
+  "version": "1.0.0",
+  "description": "An api wrapper for beatsaver.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/martin0300/beatsaver-api-wrapper.git"
+  },
+  "author": "martin0300",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/martin0300/beatsaver-api-wrapper/issues"
+  },
+  "homepage": "https://github.com/martin0300/beatsaver-api-wrapper#readme"
+}
