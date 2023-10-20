@@ -20,4 +20,4 @@ var bsApi = new BeatSaverAPI("beatbrowser/1.0");
         console.log(error);
     });*/
 
-console.log(await bsApi.getMapInfo(""));
+console.log(await bsApi.getCollaborationMapsFromUserID(testUserID, 10, "2021-10-20T15:30:00+00:00"));

@@ -45,6 +45,15 @@ const getMapsFromUserIDValues = {
     tooLongID: 9999999999,
 };
 
+const getCollaborationMapsFromUserIDValues = {
+    validID: 58338,
+    invalidID: 999999999,
+    invalidStringID: "dfgdfgdfgdfg",
+    tooLongID: 9999999999,
+    validDate: "2021-10-20T15:30:00+00:00",
+    invalidDate: "1969-12-31T23:59:59+00:00",
+};
+
 console.log("You can find the test IDs/hashes on the top of the file.");
 describe("MapInfo", async function () {
     describe("valid getMapInfo()", async function () {
@@ -199,6 +208,51 @@ describe("GetMapsFromUserID", async function () {
         it("should return 'toolongid' if userID is longer than 9 characters (undocumented in swagger docs)", async function () {
             var response = await bsApi.getMapsFromUserID(getMapsFromUserIDValues.tooLongID, 0);
             assert.equal(response.status, "toolongid");
+        });
+    });
+});
+
+describe("GetCollaborationMapsFromUserID", async function () {
+    describe("valid getCollaborationMapsFromUserID()", async function () {
+        it("should return true and the levels if userID is valid and the user is found", async function () {
+            var response = await bsApi.getCollaborationMapsFromUserID(getCollaborationMapsFromUserIDValues.validID);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("invalid getCollaborationMapsFromUserID()", async function () {
+        it("should return false if userID is invalid or user not found", async function () {
+            var response = await bsApi.getCollaborationMapsFromUserID(getCollaborationMapsFromUserIDValues.invalidID);
+            assert.equal(response.status, false);
+        });
+    });
+    describe("invalid (not a number) getCollaborationMapsFromUserID()", async function () {
+        it("should return 'invalidid' if userID is not a number", async function () {
+            var response = await bsApi.getCollaborationMapsFromUserID(getCollaborationMapsFromUserIDValues.invalidStringID);
+            assert.equal(response.status, "invalidid");
+        });
+    });
+    describe("invalidPageSize getCollaborationMapsFromUserID()", async function () {
+        it("should return 'invalidpagesize' if pageSize is not a number", async function () {
+            var response = await bsApi.getCollaborationMapsFromUserID(getCollaborationMapsFromUserIDValues.validID, "fdfsdfsdf");
+            assert.equal(response.status, "invalidpagesize");
+        });
+    });
+    describe("too long userID getCollaborationMapsFromUserID()", async function () {
+        it("should return 'toolongid' if userID is longer than 9 characters (undocumented in swagger docs)", async function () {
+            var response = await bsApi.getCollaborationMapsFromUserID(getCollaborationMapsFromUserIDValues.tooLongID);
+            assert.equal(response.status, "toolongid");
+        });
+    });
+    describe("valid before date getCollaborationMapsFromUserID()", async function () {
+        it("should return true and levels if userID and before date is correct", async function () {
+            var response = await bsApi.getCollaborationMapsFromUserID(getCollaborationMapsFromUserIDValues.validID, 20, getCollaborationMapsFromUserIDValues.validDate);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("invalid before date getCollaborationMapsFromUserID()", async function () {
+        it("should return 'invaliddate' if before date is invalid", async function () {
+            var response = await bsApi.getCollaborationMapsFromUserID(getCollaborationMapsFromUserIDValues.validID, 20, getCollaborationMapsFromUserIDValues.invalidDate);
+            assert.equal(response.status, "invaliddate");
         });
     });
 });
