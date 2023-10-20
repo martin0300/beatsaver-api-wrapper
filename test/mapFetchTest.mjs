@@ -1,4 +1,7 @@
 import BeatSaverAPI from "../index.mjs";
+import assert from "assert";
+
+//DO NOT USE THIS!!!!
 
 var bsApi = new BeatSaverAPI("mapFetchTest/1.0");
 
@@ -30,16 +33,12 @@ function sleep(ms) {
 //very good tests absolutely no problems lol
 async function runMapInfoTests() {
     //valid
-    await bsApi
-        .getMapInfo(getMapInfo.validID)
-        .then(function (data) {
-            if (data.status == true) {
-                console.log("getMapInfo validID test passed.");
-            }
-        })
-        .catch(function (error) {
-            console.log(`getMapInfo validID test failed. Status: ${error.status}`);
-        });
+    var response = await bsApi.getMapInfo(getMapInfo.validID);
+    if (response.status == true) {
+        console.log("getMapInfo validID test passed.");
+    } else {
+        console.log(`getMapInfo validID test failed. Status: ${error.status}`);
+    }
 
     //invalid
     await bsApi
@@ -285,4 +284,5 @@ async function runTests() {
     await runMapInfoFromHashListTest();
 }
 
-runTests();
+//runTests();
+console.log("Use test.mjs with mocha this doesn't work!!! (only with old versions of index.mjs that i will not release)");

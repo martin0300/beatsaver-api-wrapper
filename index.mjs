@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import axios from "axios";
+import axios, { formToJSON } from "axios";
 
 const beatSaverAPIVersion = "1.0-Beta";
 const debug = true;
@@ -53,6 +53,14 @@ function isnullorempty(string) {
 class BeatSaverAPI {
     constructor(customUserAgent = null) {
         this.userAgent = `beatsaver-api-wrapper/${beatSaverAPIVersion}${customUserAgent !== null ? ` ${customUserAgent}` : ""}`;
+        this.axiosInstance = axios.create({
+            baseURL: apiURLs.mainAPIURL,
+            headers: { "User-Agent": this.userAgent },
+        });
+    }
+
+    apiResponse(status, data = null) {
+        return { status: status, data: data };
     }
 
     /*
@@ -60,54 +68,38 @@ class BeatSaverAPI {
     Returns an object with data and status.
     Status can be: "invalidid" (data is null), true (api response will be returned as data), "fetcherror" (axios error will be returned as data)
     */
-    getMapInfo(id) {
-        return new Promise(function (resolve, reject) {
-            var apiResponse = {
-                status: "",
-                data: null,
-            };
-            if (isnullorempty(id)) {
-                apiResponse.status = false;
-                reject(apiResponse);
+    async getMapInfo(id) {
+        if (isnullorempty(id)) {
+            return this.apiResponse(false);
+        }
+        try {
+            var response = await this.axiosInstance.get(`${apiURLs.getMapInfoID}${id}`);
+            switch (response.status) {
+                case 200:
+                    return this.apiResponse(true, response.data);
+                default:
+                    if (debug) {
+                        throw new Error(`Unhandled status code! (${response.status})`);
+                    }
+                    break;
             }
-            axios({
-                url: `${apiURLs.mainAPIURL}${apiURLs.getMapInfoID}${id}`,
-                method: "GET",
-            })
-                .then(function (response) {
-                    switch (response.status) {
-                        case 200:
-                            apiResponse.status = true;
-                            apiResponse.data = response.data;
-                            break;
-                        default:
-                            if (debug) {
-                                throw new Error(`Unhandled status code! (${response.status})`);
-                            }
-                            break;
-                    }
-                    resolve(apiResponse);
-                })
-                .catch(function (error) {
-                    switch (error.code) {
-                        case "ERR_BAD_REQUEST":
-                            apiResponse.status = "invalidid";
-                            break;
+            return apiResponse;
+        } catch (error) {
+            switch (error.code) {
+                case "ERR_BAD_REQUEST":
+                    return this.apiResponse("invalidid");
 
-                        case "ENOTFOUND":
-                            apiResponse.status = "fetcherror";
-                            apiResponse.data = error;
-                            break;
+                case "ENOTFOUND":
+                    return this.apiResponse("fetcherror", error);
 
-                        default:
-                            if (debug) {
-                                throw new Error(`Unhandled error code! (${error.code})`);
-                            }
-                            break;
+                default:
+                    if (debug) {
+                        throw new Error(`Unhandled error code! (${error.code})`);
                     }
-                    reject(apiResponse);
-                });
-        });
+                    break;
+            }
+            return apiResponse;
+        }
     }
 
     /*
@@ -118,63 +110,42 @@ class BeatSaverAPI {
     Returns false if no maps could be found. (Data is null)
     Returns true if maps had been found.
     */
-    getMapInfoFromList(idList) {
-        return new Promise(function (resolve, reject) {
-            var apiResponse = {
-                status: "",
-                data: null,
-            };
-            if (!Array.isArray(idList)) {
-                apiResponse.status = "notanarray";
-                reject(apiResponse);
-            }
-            if (idList.length == 0) {
-                apiResponse.status = "emptyarray";
-                reject(apiResponse);
-            }
-            if (idList.length > 50) {
-                apiResponse.status = "toolargearray";
-                reject(apiResponse);
-            }
-            axios({
-                url: `${apiURLs.mainAPIURL}${apiURLs.getMapInfoIDs}${idList.join(",")}`,
-                method: "GET",
-            })
-                .then(function (response) {
-                    switch (response.status) {
-                        case 200:
-                            apiResponse.status = Object.keys(response.data).length == 0 ? false : true;
-                            apiResponse.data = Object.keys(response.data).length == 0 ? null : response.data;
-                            Object.keys(response.data).length == 0 ? reject(apiResponse) : resolve(apiResponse);
-                            break;
-                        default:
-                            if (debug) {
-                                throw new Error(`Unhandled status code! (${response.status})`);
-                            }
-                            break;
+    async getMapInfoFromList(idList) {
+        if (!Array.isArray(idList)) {
+            return this.apiResponse("notanarray");
+        }
+        if (idList.length == 0) {
+            return this.apiResponse("emptyarray");
+        }
+        if (idList.length > 50) {
+            return this.apiResponse("toolargearray");
+        }
+        try {
+            var response = await this.axiosInstance.get(`${apiURLs.getMapInfoIDs}${idList.join(",")}`);
+            switch (response.status) {
+                case 200:
+                    return this.apiResponse(Object.keys(response.data).length == 0 ? false : true, Object.keys(response.data).length == 0 ? null : response.data);
+                default:
+                    if (debug) {
+                        throw new Error(`Unhandled status code! (${response.status})`);
                     }
-                    resolve(apiResponse);
-                })
-                .catch(function (error) {
-                    switch (error.code) {
-                        case "ERR_BAD_REQUEST":
-                            apiResponse.status = "fetcherror";
-                            break;
+                    break;
+            }
+        } catch (error) {
+            switch (error.code) {
+                case "ERR_BAD_REQUEST":
+                    return this.apiResponse("fetcherror");
 
-                        case "ENOTFOUND":
-                            apiResponse.status = "fetcherror";
-                            apiResponse.data = error;
-                            break;
+                case "ENOTFOUND":
+                    return this.apiResponse("fetcherror", error);
 
-                        default:
-                            if (debug) {
-                                throw new Error(`Unhandled error code! (${error.code})`);
-                            }
-                            break;
+                default:
+                    if (debug) {
+                        throw new Error(`Unhandled error code! (${error.code})`);
                     }
-                    reject(apiResponse);
-                });
-        });
+                    break;
+            }
+        }
     }
 
     /*
@@ -185,125 +156,89 @@ class BeatSaverAPI {
     Returns false if no maps could be found. (Data is null)
     Returns true if maps had been found.
     */
-    getMapInfoFromHashList(idList) {
-        return new Promise(function (resolve, reject) {
-            var apiResponse = {
-                status: "",
-                data: null,
-            };
-            if (!Array.isArray(idList)) {
-                apiResponse.status = "notanarray";
-                reject(apiResponse);
-            }
-            if (idList.length == 0) {
-                apiResponse.status = "emptyarray";
-                reject(apiResponse);
-            }
-            if (idList.length > 50) {
-                apiResponse.status = "toolargearray";
-                reject(apiResponse);
-            }
-            axios({
-                url: `${apiURLs.mainAPIURL}${apiURLs.getMapInfoHashes}${idList.join(",")}`,
-                method: "GET",
-            })
-                .then(function (response) {
-                    switch (response.status) {
-                        case 200:
-                            apiResponse.status = Object.keys(response.data).length == 0 ? false : true;
-                            apiResponse.data = Object.keys(response.data).length == 0 ? null : response.data;
-                            Object.keys(response.data).length == 0 ? reject(apiResponse) : resolve(apiResponse);
-                            break;
-                        default:
-                            if (debug) {
-                                throw new Error(`Unhandled status code! (${response.status})`);
-                            }
-                            break;
+    async getMapInfoFromHashList(idList) {
+        if (!Array.isArray(idList)) {
+            return this.apiResponse("notanarray");
+        }
+        if (idList.length == 0) {
+            return this.apiResponse("emptyarray");
+        }
+        if (idList.length > 50) {
+            return this.apiResponse("toolargearray");
+        }
+        try {
+            var response = await this.axiosInstance.get(`${apiURLs.getMapInfoHashes}${idList.join(",")}`);
+            switch (response.status) {
+                case 200:
+                    return this.apiResponse(Object.keys(response.data).length == 0 ? false : true, Object.keys(response.data).length == 0 ? null : response.data);
+                default:
+                    if (debug) {
+                        throw new Error(`Unhandled status code! (${response.status})`);
                     }
-                    resolve(apiResponse);
-                })
-                .catch(function (error) {
-                    switch (error.code) {
-                        case "ERR_BAD_REQUEST":
-                            apiResponse.status = false;
-                            break;
+                    break;
+            }
+        } catch (error) {
+            switch (error.code) {
+                case "ERR_BAD_REQUEST":
+                    return this.apiResponse(false);
 
-                        case "ENOTFOUND":
-                            apiResponse.status = "fetcherror";
-                            apiResponse.data = error;
-                            break;
+                case "ENOTFOUND":
+                    return this.apiResponse("fetcherror", error);
 
-                        default:
-                            if (debug) {
-                                throw new Error(`Unhandled error code! (${error.code})`);
-                            }
-                            break;
+                default:
+                    if (debug) {
+                        throw new Error(`Unhandled error code! (${error.code})`);
                     }
-                    reject(apiResponse);
-                });
-        });
+                    break;
+            }
+        }
     }
 
     /*
     Returns "fetcherror" in case of any errors. (404, ENOTFOUND)
     Returns "invalidid" if userID isn't a number.
+    Returns "toolongid" if userID is too long.
     Returns "invalidpage" if page isn't a number.
     Returns false if user's maps couldn't be found. (Data is null)
     Returns true if user's maps had been found.
     */
-    getMapsFromUserID(userID, page = 0) {
-        return new Promise(function (resolve, reject) {
-            var apiResponse = {
-                status: "",
-                data: null,
-            };
-            if (isNaN(userID)) {
-                apiResponse.status = "invalidid";
-                reject(apiResponse);
-            }
-            if (isNaN(page)) {
-                apiResponse.status = "invalidpage";
-                reject(apiResponse);
-            }
-            axios({
-                url: `${apiURLs.mainAPIURL}${apiURLs.getMapsFromUserID}${userID}/${page}`,
-                method: "GET",
-            })
-                .then(function (response) {
-                    switch (response.status) {
-                        case 200:
-                            apiResponse.status = response.data.docs.length == 0 ? false : true;
-                            apiResponse.data = response.data.docs.length == 0 ? null : response.data;
-                            response.data.docs.length == 0 ? reject(apiResponse) : resolve(apiResponse);
-                            break;
-                        default:
-                            if (debug) {
-                                throw new Error(`Unhandled status code! (${response.status})`);
-                            }
-                            break;
+    async getMapsFromUserID(userID, page = 0) {
+        if (isNaN(userID)) {
+            return this.apiResponse("invalidid");
+        }
+        if (isNaN(page)) {
+            return this.apiResponse("invalidpage");
+        }
+        userID = Number(userID);
+        if (userID > 999999999) {
+            return this.apiResponse("toolongid");
+        }
+        try {
+            var response = await this.axiosInstance.get(`${apiURLs.getMapsFromUserID}${userID}/${page}`);
+            switch (response.status) {
+                case 200:
+                    return this.apiResponse(response.data.docs.length == 0 ? false : true, response.data.docs.length == 0 ? null : response.data);
+                default:
+                    if (debug) {
+                        throw new Error(`Unhandled status code! (${response.status})`);
                     }
-                    resolve(apiResponse);
-                })
-                .catch(function (error) {
-                    switch (error.code) {
-                        case "ERR_BAD_REQUEST":
-                            apiResponse.status = "fetcherror";
-                            break;
+                    break;
+            }
+        } catch (error) {
+            switch (error.code) {
+                case "ERR_BAD_REQUEST":
+                    return this.apiResponse("fetcherror");
 
-                        case "ENOTFOUND":
-                            apiResponse.status = "fetcherror";
-                            apiResponse.data = error;
-                            break;
+                case "ENOTFOUND":
+                    return this.apiResponse("fetcherror", error);
 
-                        default:
-                            if (debug) {
-                                throw new Error(`Unhandled error code! (${error.code})`);
-                            }
-                            break;
+                default:
+                    if (debug) {
+                        throw new Error(`Unhandled error code! (${error.code})`);
                     }
-                    reject(apiResponse);
-                });
-        });
+                    break;
+            }
+        }
     }
 }
 

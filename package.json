@@ -18,5 +18,8 @@
   "homepage": "https://github.com/martin0300/beatsaver-api-wrapper#readme",
   "dependencies": {
     "axios": "^1.5.1"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0"
   }
 }
