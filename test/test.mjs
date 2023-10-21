@@ -1,5 +1,6 @@
 import BeatSaverAPI from "../index.mjs";
 import assert from "assert";
+import nock from "nock";
 
 var bsApi = new BeatSaverAPI("mapFetchTest/1.0");
 
@@ -54,6 +55,10 @@ const getCollaborationMapsFromUserIDValues = {
     invalidDate: "1969-12-31T23:59:59+00:00",
 };
 
+afterEach(function () {
+    nock.enableNetConnect();
+});
+
 console.log("You can find the test IDs/hashes on the top of the file.");
 describe("MapInfo", async function () {
     describe("valid getMapInfo()", async function () {
@@ -74,6 +79,14 @@ describe("MapInfo", async function () {
         it("should return false if ID is an empty string", async function () {
             var response = await bsApi.getMapInfo("");
             assert.equal(response.status, false);
+        });
+    });
+
+    describe("simulated network error getMapInfo()", async function () {
+        it("should return 'fetcherror' if there is a network error", async function () {
+            nock.disableNetConnect();
+            var response = await bsApi.getMapInfo(getMapInfo.validID);
+            assert.equal(response.status, "fetcherror");
         });
     });
 });
@@ -131,6 +144,13 @@ describe("MapInfoFromList", async function () {
             assert.equal(response.status, "toolargearray");
         });
     });
+    describe("simulated network error getMapInfoFromList()", async function () {
+        it("should return 'fetcherror' if there is a network error", async function () {
+            nock.disableNetConnect();
+            var response = await bsApi.getMapInfoFromList(getMapInfoFromListList.validList);
+            assert.equal(response.status, "fetcherror");
+        });
+    });
 });
 
 describe("MapInfoFromHashList", async function () {
@@ -177,6 +197,13 @@ describe("MapInfoFromHashList", async function () {
             assert.equal(response.status, "toolargearray");
         });
     });
+    describe("simulated network error getMapInfoFromHashList()", async function () {
+        it("should return 'fetcherror' if there is a network error", async function () {
+            nock.disableNetConnect();
+            var response = await bsApi.getMapInfoFromHashList(getMapInfoFromHashListList.validList);
+            assert.equal(response.status, "fetcherror");
+        });
+    });
 });
 
 describe("GetMapsFromUserID", async function () {
@@ -208,6 +235,13 @@ describe("GetMapsFromUserID", async function () {
         it("should return 'toolongid' if userID is longer than 9 characters (undocumented in swagger docs)", async function () {
             var response = await bsApi.getMapsFromUserID(getMapsFromUserIDValues.tooLongID, 0);
             assert.equal(response.status, "toolongid");
+        });
+    });
+    describe("simulated network error getMapsFromUserID()", async function () {
+        it("should return 'fetcherror' if there is a network error", async function () {
+            nock.disableNetConnect();
+            var response = await bsApi.getMapsFromUserID(getMapsFromUserIDValues.validID, 0);
+            assert.equal(response.status, "fetcherror");
         });
     });
 });
@@ -253,6 +287,13 @@ describe("GetCollaborationMapsFromUserID", async function () {
         it("should return 'invaliddate' if before date is invalid", async function () {
             var response = await bsApi.getCollaborationMapsFromUserID(getCollaborationMapsFromUserIDValues.validID, 20, getCollaborationMapsFromUserIDValues.invalidDate);
             assert.equal(response.status, "invaliddate");
+        });
+    });
+    describe("simulated network error getCollaborationMapsFromUserID()", async function () {
+        it("should return 'fetcherror' if there is a network error", async function () {
+            nock.disableNetConnect();
+            var response = await bsApi.getCollaborationMapsFromUserID(getCollaborationMapsFromUserIDValues.validID);
+            assert.equal(response.status, "fetcherror");
         });
     });
 });

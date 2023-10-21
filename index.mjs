@@ -69,6 +69,31 @@ class BeatSaverAPI {
     }
 
     /*
+    Used when errors doesn't mean anything to the result of the call.
+    Like in getMapInfo() the 404 means that the map doesn't exist. You can't use this there.
+    In any other case the 404 or 'ENOTFOUND' means there is something wrong with the network or an undocumented API error (like too long userID).
+    */
+    handleGenericErrors(error) {
+        switch (error.code) {
+            case "ERR_BAD_REQUEST":
+                return this.apiResponse("fetcherror");
+
+            case "ENOTFOUND":
+            case "ECONNREFUSED":
+            case "ETIMEDOUT":
+            case "ECONNRESET":
+            case "ENETUNREACH":
+                return this.apiResponse("fetcherror", error);
+
+            default:
+                if (debug) {
+                    throw new Error(`Unhandled error code! (${error.code})`);
+                }
+                break;
+        }
+    }
+
+    /*
     Returns false if no id is specified.
     Returns an object with data and status.
     Status can be: "invalidid" (data is null), true (api response will be returned as data), "fetcherror" (axios error will be returned as data)
@@ -94,16 +119,9 @@ class BeatSaverAPI {
                 case "ERR_BAD_REQUEST":
                     return this.apiResponse("invalidid");
 
-                case "ENOTFOUND":
-                    return this.apiResponse("fetcherror", error);
-
                 default:
-                    if (debug) {
-                        throw new Error(`Unhandled error code! (${error.code})`);
-                    }
-                    break;
+                    return this.handleGenericErrors(error);
             }
-            return apiResponse;
         }
     }
 
@@ -137,19 +155,7 @@ class BeatSaverAPI {
                     break;
             }
         } catch (error) {
-            switch (error.code) {
-                case "ERR_BAD_REQUEST":
-                    return this.apiResponse("fetcherror");
-
-                case "ENOTFOUND":
-                    return this.apiResponse("fetcherror", error);
-
-                default:
-                    if (debug) {
-                        throw new Error(`Unhandled error code! (${error.code})`);
-                    }
-                    break;
-            }
+            return this.handleGenericErrors(error);
         }
     }
 
@@ -187,14 +193,8 @@ class BeatSaverAPI {
                 case "ERR_BAD_REQUEST":
                     return this.apiResponse(false);
 
-                case "ENOTFOUND":
-                    return this.apiResponse("fetcherror", error);
-
                 default:
-                    if (debug) {
-                        throw new Error(`Unhandled error code! (${error.code})`);
-                    }
-                    break;
+                    return this.handleGenericErrors(error);
             }
         }
     }
@@ -230,19 +230,7 @@ class BeatSaverAPI {
                     break;
             }
         } catch (error) {
-            switch (error.code) {
-                case "ERR_BAD_REQUEST":
-                    return this.apiResponse("fetcherror");
-
-                case "ENOTFOUND":
-                    return this.apiResponse("fetcherror", error);
-
-                default:
-                    if (debug) {
-                        throw new Error(`Unhandled error code! (${error.code})`);
-                    }
-                    break;
-            }
+            return this.handleGenericErrors(error);
         }
     }
 
@@ -287,19 +275,7 @@ class BeatSaverAPI {
                     break;
             }
         } catch (error) {
-            switch (error.code) {
-                case "ERR_BAD_REQUEST":
-                    return this.apiResponse("fetcherror");
-
-                case "ENOTFOUND":
-                    return this.apiResponse("fetcherror", error);
-
-                default:
-                    if (debug) {
-                        throw new Error(`Unhandled error code! (${error.code})`);
-                    }
-                    break;
-            }
+            return this.handleGenericErrors(error);
         }
     }
 }
