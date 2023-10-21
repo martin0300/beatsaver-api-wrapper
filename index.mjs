@@ -99,6 +99,7 @@ class BeatSaverAPI {
     Status can be: "invalidid" (data is null), true (api response will be returned as data), "fetcherror" (axios error will be returned as data)
     */
     async getMapInfo(id) {
+        //check if id isn't null or an empty string
         if (isnullorempty(id)) {
             return this.apiResponse(false);
         }
@@ -134,12 +135,15 @@ class BeatSaverAPI {
     Returns true if maps had been found.
     */
     async getMapInfoFromList(idList) {
+        //check if idList is an array
         if (!Array.isArray(idList)) {
             return this.apiResponse("notanarray");
         }
+        //check if idList is empty
         if (idList.length == 0) {
             return this.apiResponse("emptyarray");
         }
+        //check if idList doesn't have more than 50 elements
         if (idList.length > 50) {
             return this.apiResponse("toolargearray");
         }
@@ -167,18 +171,21 @@ class BeatSaverAPI {
     Returns false if no maps could be found. (Data is null)
     Returns true if maps had been found.
     */
-    async getMapInfoFromHashList(idList) {
-        if (!Array.isArray(idList)) {
+    async getMapInfoFromHashList(hashList) {
+        //check if hashList is an array
+        if (!Array.isArray(hashList)) {
             return this.apiResponse("notanarray");
         }
-        if (idList.length == 0) {
+        //check if hashList is empty
+        if (hashList.length == 0) {
             return this.apiResponse("emptyarray");
         }
-        if (idList.length > 50) {
+        //check if hashList doesn't have more than 50 elements
+        if (hashList.length > 50) {
             return this.apiResponse("toolargearray");
         }
         try {
-            var response = await this.axiosInstance.get(`${apiURLs.getMapInfoHashes}${idList.join(",")}`);
+            var response = await this.axiosInstance.get(`${apiURLs.getMapInfoHashes}${hashList.join(",")}`);
             switch (response.status) {
                 case 200:
                     return this.apiResponse(Object.keys(response.data).length == 0 ? false : true, Object.keys(response.data).length == 0 ? null : response.data);
@@ -208,13 +215,17 @@ class BeatSaverAPI {
     Returns true if user's maps had been found.
     */
     async getMapsFromUserID(userID, page = 0) {
+        //check if userID is a number
         if (isNaN(userID)) {
             return this.apiResponse("invalidid");
         }
+        //check if page is a number
         if (isNaN(page)) {
             return this.apiResponse("invalidpage");
         }
+        //ensures that if it's null or a string it will be 0 or the string in numbers
         userID = Number(userID);
+        //check if userID is not longer than 9 characters
         if (userID > 999999999) {
             return this.apiResponse("toolongid");
         }
@@ -238,23 +249,28 @@ class BeatSaverAPI {
     Returns "fetcherror" in case of any errors. (404, ENOTFOUND)
     Returns "invalidid" if userID isn't a number.
     Returns "toolongid" if userID is too long.
-    Returns "invalidpagesize" if page isn't a number.
+    Returns "invalidpagesize" if pageSize isn't a number.
     Returns "invaliddate" if the date isn't in the correct format. (YYYY-MM-DDTHH:MM:SS+00:00) (Minimum year is 1970, Maximum is 9999)
     Returns false if user's maps couldn't be found. (Data is null)
     Returns true if user's maps had been found.
     */
     async getCollaborationMapsFromUserID(userID, pageSize = 20, before = null) {
+        //check if userID is a number
         if (isNaN(userID)) {
             return this.apiResponse("invalidid");
         }
+        //check if pageSize is a number
         if (isNaN(pageSize)) {
             return this.apiResponse("invalidpagesize");
         }
+        //ensures that if it's null or a string it will be 0 or the string in numbers
         pageSize = Number(pageSize);
         userID = Number(userID);
+        //check if userID is not longer than 9 characters
         if (userID > 999999999) {
             return this.apiResponse("toolongid");
         }
+        //check before date
         if (before != null) {
             if (!this.checkDate(before)) {
                 return this.apiResponse("invaliddate");
@@ -276,6 +292,46 @@ class BeatSaverAPI {
             }
         } catch (error) {
             return this.handleGenericErrors(error);
+        }
+    }
+
+    /*
+    Returns "fetcherror" in case of any network errors.
+    Returns "invalidautomapper" if automapper is not a boolean.
+    Returns "invalidbeforedate" if before date is not in the correct format. (YYYY-MM-DDTHH:MM:SS+00:00) (Minimum year is 1970, Maximum is 9999)
+    Returns "invalidafterdate" if after date is not in the correct format. (YYYY-MM-DDTHH:MM:SS+00:00) (Minimum year is 1970, Maximum is 9999)
+    Returns "invalidpagesize" if pageSize isn't a number.
+    Returns "invalidsort" if sort value is invalid. (Valid: FIRST_PUBLISHED, UPDATED, LAST_PUBLISHED, CREATED, CURATED)
+    Returns true if the maps are found.
+    Returns false if no maps are found.
+    */
+    async getLatestMaps(after = null, automapper = null, before = null, pageSize = 20, sort = false) {
+        //check after date
+        if (after != null) {
+            if (!this.checkDate(after)) {
+                return this.apiResponse("invalidafterdate");
+            }
+        }
+        //check before date
+        if (before != null) {
+            if (!this.checkDate(before)) {
+                return this.apiResponse("invalidbeforedate");
+            }
+        }
+        //check if pageSize is a number
+        if (isNaN(pageSize)) {
+            return this.apiResponse("invalidpagesize");
+        }
+        //ensures that if it's null or a string it will be 0 or the string in numbers
+        pageSize = Number(pageSize);
+        //check if automapper is a boolean
+        if (automapper != null) {
+            if (typeof automapper != "boolean") {
+                return this.apiResponse("invalidautomapper");
+            }
+        }
+        //check if sort is a valid sort (Valid: FIRST_PUBLISHED, UPDATED, LAST_PUBLISHED, CREATED, CURATED)
+        if (sort != null) {
         }
     }
 }
