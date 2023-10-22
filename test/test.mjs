@@ -80,6 +80,14 @@ const getUserByIDValues = {
     tooLongID: 9999999999,
 };
 
+/*
+Joetastic (https://beatsaver.com/profile/58338)
+*/
+const getUserByNameValues = {
+    validName: "Joetastic",
+    invalidName: "fsdfsdfsdfsdfsdf",
+};
+
 afterEach(function () {
     nock.enableNetConnect();
 });
@@ -486,6 +494,41 @@ describe("GetUserByID", async function () {
         it("should return 'toolongid' if the userID is longer than 9 characters", async function () {
             var response = await bsApi.getUserByID(getUserByIDValues.tooLongID);
             assert.equal(response.status, "toolongid");
+        });
+    });
+    describe("simulated network error getUserByID()", async function () {
+        it("should return 'fetcherror' if there is a network error", async function () {
+            nock.disableNetConnect();
+            var response = await bsApi.getUserByID(getUserByIDValues.validID);
+            assert.equal(response.status, "fetcherror");
+        });
+    });
+});
+
+describe("GetUserByName", async function () {
+    describe("valid getUserByName()", async function () {
+        it("should return true and user data if the username is valid and the user is found", async function () {
+            var response = await bsApi.getUserByName(getUserByNameValues.validName);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("invalid getUserByName()", async function () {
+        it("should return false if the username is invalid or user is not found", async function () {
+            var response = await bsApi.getUserByName(getUserByNameValues.invalidName);
+            assert.equal(response.status, false);
+        });
+    });
+    describe("no name getUserByName()", async function () {
+        it("should return 'invalidname' if the username is an empty string", async function () {
+            var response = await bsApi.getUserByName("");
+            assert.equal(response.status, "invalidname");
+        });
+    });
+    describe("simulated network error getUserByName()", async function () {
+        it("should return 'fetcherror' if there is a network error", async function () {
+            nock.disableNetConnect();
+            var response = await bsApi.getUserByName(getUserByNameValues.validName);
+            assert.equal(response.status, "fetcherror");
         });
     });
 });

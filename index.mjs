@@ -36,6 +36,7 @@ const apiURLs = {
     getLatestMaps: "/maps/latest",
     getMapsByPlayCount: "/maps/plays/",
     getUserByID: "/users/id/",
+    getUserByName: "/users/name/",
 };
 const sortOptions = ["FIRST_PUBLISHED", "UPDATED", "LAST_PUBLISHED", "CREATED", "CURATED"];
 
@@ -440,6 +441,37 @@ class BeatSaverAPI {
             switch (response.status) {
                 case 200:
                     return this.apiResponse(true, response.data);
+                default:
+                    return this.unhandledError(response.status);
+            }
+        } catch (error) {
+            switch (error.code) {
+                case "ERR_BAD_REQUEST":
+                    return this.apiResponse(false);
+
+                default:
+                    return this.handleGenericErrors(error);
+            }
+        }
+    }
+
+    /*
+    Returns "fetcherror" in case of any network errors.
+    Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
+    Returns false if user isn't found.
+    Returns true and user data if user is found.
+    Returns "invalidname" if username is null or an empty string.
+    */
+    async getUserByName(username) {
+        if (isnullorempty(username)) {
+            return this.apiResponse("invalidname");
+        }
+        try {
+            var response = await this.axiosInstance.get(`${apiURLs.getUserByName}/${username}`);
+            switch (response.status) {
+                case 200:
+                    return this.apiResponse(true, response.data);
+
                 default:
                     return this.unhandledError(response.status);
             }
