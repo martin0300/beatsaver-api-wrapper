@@ -44,6 +44,7 @@ const getMapsFromUserIDValues = {
     invalidID: 999999999,
     invalidStringID: "dfgdfgdfgdfg",
     tooLongID: 9999999999,
+    tooLongPageNumber: 9999999999999999999,
 };
 
 const getCollaborationMapsFromUserIDValues = {
@@ -53,6 +54,7 @@ const getCollaborationMapsFromUserIDValues = {
     tooLongID: 9999999999,
     validDate: "2021-10-20T15:30:00+00:00",
     invalidDate: "1969-12-31T23:59:59+00:00",
+    tooLongPageSize: 9999999999,
 };
 
 const getLatestMapsValues = {
@@ -60,6 +62,12 @@ const getLatestMapsValues = {
     invalidDate: "1969-12-31T23:59:59+00:00",
     noMapsDate: "2001-10-20T15:30:00+00:00",
     validSort: "CURATED",
+    tooLongPageSize: 9999999999,
+};
+
+const getMapsByPlayCountValues = {
+    tooLongPageNumber: 9999999999999999999,
+    noMapsPage: 999999999,
 };
 
 afterEach(function () {
@@ -238,6 +246,12 @@ describe("GetMapsFromUserID", async function () {
             assert.equal(response.status, "invalidpage");
         });
     });
+    describe("too long page getMapsFromUserID()", async function () {
+        it("should return 'toolongpagesize' if page is longer than 18 characters", async function () {
+            var response = await bsApi.getMapsFromUserID(getMapsFromUserIDValues.validID, getMapsFromUserIDValues.tooLongPageNumber);
+            assert.equal(response.status, "toolongpage");
+        });
+    });
     describe("too long userID getMapsFromUserID()", async function () {
         it("should return 'toolongid' if userID is longer than 9 characters (undocumented in swagger docs)", async function () {
             var response = await bsApi.getMapsFromUserID(getMapsFromUserIDValues.tooLongID, 0);
@@ -276,6 +290,12 @@ describe("GetCollaborationMapsFromUserID", async function () {
         it("should return 'invalidpagesize' if pageSize is not a number", async function () {
             var response = await bsApi.getCollaborationMapsFromUserID(getCollaborationMapsFromUserIDValues.validID, "fdfsdfsdf");
             assert.equal(response.status, "invalidpagesize");
+        });
+    });
+    describe("too long pageSize getCollaborationMapsFromUserID()", async function () {
+        it("should return 'toolongpagesize' if pageSize is longer than 9 characters", async function () {
+            var response = await bsApi.getCollaborationMapsFromUserID(getCollaborationMapsFromUserIDValues.validID, getCollaborationMapsFromUserIDValues.tooLongPageSize);
+            assert.equal(response.status, "toolongpagesize");
         });
     });
     describe("too long userID getCollaborationMapsFromUserID()", async function () {
@@ -366,6 +386,12 @@ describe("GetLatestMaps", async function () {
             assert.equal(response.status, "invalidpagesize");
         });
     });
+    describe("too long pageSize getLatestMaps()", async function () {
+        it("should return 'toolongpagesize' if pageSize is longer than 9 characters", async function () {
+            var response = await bsApi.getLatestMaps(null, null, null, getLatestMapsValues.tooLongPageSize);
+            assert.equal(response.status, "toolongpagesize");
+        });
+    });
     describe("valid sort option getLatestMaps()", async function () {
         it("should return true and the maps with the sort option", async function () {
             var response = await bsApi.getLatestMaps(null, null, null, 20, getLatestMapsValues.validSort);
@@ -389,6 +415,33 @@ describe("GetLatestMaps", async function () {
             nock.disableNetConnect();
             var response = await bsApi.getLatestMaps();
             assert.equal(response.status, "fetcherror");
+        });
+    });
+});
+
+describe.only("GetMapsByPlayCount", async function () {
+    describe("plain getMapsByPlayCount()", async function () {
+        it("should return true and the maps", async function () {
+            var response = await bsApi.getMapsByPlayCount();
+            assert.equal(response.status, true);
+        });
+    });
+    describe("invalid page getMapsByPlayCount()", async function () {
+        it("should return 'invalidpage' if page is not a number", async function () {
+            var response = await bsApi.getMapsByPlayCount("fdsfsd");
+            assert.equal(response.status, "invalidpage");
+        });
+    });
+    describe("invalid page getMapsByPlayCount()", async function () {
+        it("should return 'toolongpage' if page is longer than 18 characters", async function () {
+            var response = await bsApi.getMapsByPlayCount(getMapsByPlayCountValues.tooLongPageNumber);
+            assert.equal(response.status, "toolongpage");
+        });
+    });
+    describe("no maps getMapsByPlayCount()", async function () {
+        it("should return false if no maps are found on the page", async function () {
+            var response = await bsApi.getMapsByPlayCount(getMapsByPlayCountValues.noMapsPage);
+            assert.equal(response.status, false);
         });
     });
 });

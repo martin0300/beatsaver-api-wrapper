@@ -34,6 +34,7 @@ const apiURLs = {
     getMapsFromUserID: "/maps/uploader/",
     getCollaborationMapsFromUserID: "/maps/collaborations/",
     getLatestMaps: "/maps/latest",
+    getMapsByPlayCount: "/maps/plays/",
 };
 const sortOptions = ["FIRST_PUBLISHED", "UPDATED", "LAST_PUBLISHED", "CREATED", "CURATED"];
 
@@ -210,6 +211,7 @@ class BeatSaverAPI {
     Returns "fetcherror" in case of any errors. (404, ENOTFOUND)
     Returns "invalidid" if userID isn't a number.
     Returns "toolongid" if userID is too long.
+    Returns "toolongpage" if page is higher than 999999999999999999 or longer than 18 characters.
     Returns "invalidpage" if page isn't a number.
     Returns false if user's maps couldn't be found. (Data is null)
     Returns true if user's maps had been found.
@@ -225,9 +227,14 @@ class BeatSaverAPI {
         }
         //ensures that if it's null or a string it will be 0 or the string in numbers
         userID = Number(userID);
+        page = Number(page);
         //check if userID is not longer than 9 characters
         if (userID > 999999999) {
             return this.apiResponse("toolongid");
+        }
+        //check if page is not longer than 18 characters
+        if (page > 999999999999999999) {
+            return this.apiResponse("toolongpage");
         }
         try {
             var response = await this.axiosInstance.get(`${apiURLs.getMapsFromUserID}${userID}/${page}`);
@@ -246,6 +253,7 @@ class BeatSaverAPI {
     Returns "fetcherror" in case of any errors. (404, ENOTFOUND)
     Returns "invalidid" if userID isn't a number.
     Returns "toolongid" if userID is too long.
+    Returns "toolongpagesize" if pageSize is higher than 999999999 or longer than 9 characters.
     Returns "invalidpagesize" if pageSize isn't a number.
     Returns "invaliddate" if the date isn't in the correct format. (YYYY-MM-DDTHH:MM:SS+00:00) (Minimum year is 1970, Maximum is 9999)
     Returns false if user's maps couldn't be found. (Data is null)
@@ -266,6 +274,10 @@ class BeatSaverAPI {
         //check if userID is not longer than 9 characters
         if (userID > 999999999) {
             return this.apiResponse("toolongid");
+        }
+        //check if pageSize is not longer than 9 characters
+        if (pageSize > 999999999) {
+            return this.apiResponse("toolongpagesize");
         }
         //check before date
         if (before != null) {
@@ -297,6 +309,7 @@ class BeatSaverAPI {
     Returns "invalidbeforedate" if before date is not in the correct format. (YYYY-MM-DDTHH:MM:SS+00:00) (Minimum year is 1970, Maximum is 9999)
     Returns "invalidafterdate" if after date is not in the correct format. (YYYY-MM-DDTHH:MM:SS+00:00) (Minimum year is 1970, Maximum is 9999)
     Returns "invalidpagesize" if pageSize isn't a number.
+    Returns "toolongpagesize" if pageSize is higher than 999999999 or longer than 9 characters. (also undocumented)
     Returns "invalidsort" if sort option is invalid. (Valid: FIRST_PUBLISHED, UPDATED, LAST_PUBLISHED, CREATED, CURATED)
     Returns true if the maps are found.
     Returns false if no maps are found.
@@ -320,6 +333,10 @@ class BeatSaverAPI {
         }
         //ensures that if it's null or a string it will be 0 or the string in numbers
         pageSize = Number(pageSize);
+        //check if pageSize is not longer than 9 characters
+        if (pageSize > 999999999) {
+            return this.apiResponse("toolongpagesize");
+        }
         //check if automapper is a boolean
         if (automapper != null) {
             if (typeof automapper != "boolean") {
@@ -347,6 +364,36 @@ class BeatSaverAPI {
                     return this.apiResponse(response.data.docs.length == 0 ? false : true, response.data.docs.length == 0 ? null : response.data);
                 default:
                     this.unhandledError(error);
+            }
+        } catch (error) {
+            return this.handleGenericErrors(error);
+        }
+    }
+
+    /*
+    Returns true if the maps on the page are found.
+    Returns false if no maps are found.
+    Returns "invalidpage" if the page is not a number.
+    Returns "toolongpage" if the page number is higher than 999999999999999999 or longer than 18 characters. (also undocumented)
+    */
+    async getMapsByPlayCount(page = 0) {
+        //check if page is a number
+        if (isNaN(page)) {
+            return this.apiResponse("invalidpage");
+        }
+        //ensures that if it's null or a string it will be 0 or the string in numbers
+        page = Number(page);
+        //check if page number isn't longer than 18 characters
+        if (page > 999999999999999999) {
+            return this.apiResponse("toolongpage");
+        }
+        try {
+            var response = await this.axiosInstance(`${apiURLs.getMapsByPlayCount}${page}`);
+            switch (response.status) {
+                case 200:
+                    return this.apiResponse(response.data.docs.length == 0 ? false : true, response.data.docs.length == 0 ? null : response.data);
+                default:
+                    this.unhandledError();
             }
         } catch (error) {
             return this.handleGenericErrors(error);
