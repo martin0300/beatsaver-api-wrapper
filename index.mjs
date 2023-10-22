@@ -75,6 +75,12 @@ class BeatSaverAPI {
     /*
     It was duplicated too many times.
     Also good for catching edge cases.
+
+    !!READ THIS!!
+    If you encounter an "unhandlederror" response status, please open an issue on github and provide the error code that is returned in the response data.
+    Also it would be nice to give code that reproduces this issue.
+    This error code will only happen if debug is set to false, otherwise it throws an error.
+    Debug mode is disabled on the main branch and in production. It's enabled only in the beta.
     */
     unhandledError(errorCode) {
         if (debug) {
@@ -107,6 +113,7 @@ class BeatSaverAPI {
     }
 
     /*
+    Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
     Returns false if no id is specified.
     Returns true and user data.
     Returns "invalidid" if id is null or an empty string.
@@ -137,6 +144,7 @@ class BeatSaverAPI {
     }
 
     /*
+    Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
     Returns "notanarray" if the passed argument is not an array.
     Returns "emptyarray" if the passed array is empty.
     Returns "toolargearray" if the passed array has more elements than 50.
@@ -171,6 +179,7 @@ class BeatSaverAPI {
     }
 
     /*
+    Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
     Returns "notanarray" if the passed argument is not an array.
     Returns "emptyarray" if the passed array is empty.
     Returns "toolargearray" if the passed array has more elements than 50.
@@ -211,6 +220,7 @@ class BeatSaverAPI {
     }
 
     /*
+    Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
     Returns "fetcherror" in case of any errors. (404, ENOTFOUND)
     Returns "invalidid" if userID isn't a number.
     Returns "toolongid" if userID is too long.
@@ -253,6 +263,7 @@ class BeatSaverAPI {
     }
 
     /*
+    Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
     Returns "fetcherror" in case of any errors. (404, ENOTFOUND)
     Returns "invalidid" if userID isn't a number.
     Returns "toolongid" if userID is too long.
@@ -307,6 +318,7 @@ class BeatSaverAPI {
     }
 
     /*
+    Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
     Returns "fetcherror" in case of any network errors.
     Returns "invalidautomapper" if automapper is not a boolean.
     Returns "invalidbeforedate" if before date is not in the correct format. (YYYY-MM-DDTHH:MM:SS+00:00) (Minimum year is 1970, Maximum is 9999)
@@ -374,6 +386,7 @@ class BeatSaverAPI {
     }
 
     /*
+    Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
     Returns "fetcherror" in case of any network errors.
     Returns true if the maps on the page are found.
     Returns false if no maps are found.
@@ -406,6 +419,7 @@ class BeatSaverAPI {
 
     /*
     Returns "fetcherror" in case of any network errors.
+    Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
     Returns false if user isn't found.
     Returns true and user data if user is found.
     Returns "invalidid" if userID is not a number.
