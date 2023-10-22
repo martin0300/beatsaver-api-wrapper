@@ -70,6 +70,16 @@ const getMapsByPlayCountValues = {
     noMapsPage: 999999999,
 };
 
+/*
+userID 58338: Joetastic (https://beatsaver.com/profile/58338)
+*/
+const getUserByIDValues = {
+    validID: 58338,
+    invalidID: 999999999,
+    invalidStringID: "dfgdfgdfgdfg",
+    tooLongID: 9999999999,
+};
+
 afterEach(function () {
     nock.enableNetConnect();
 });
@@ -84,16 +94,16 @@ describe("MapInfo", async function () {
     });
 
     describe("invalid getMapInfo()", async function () {
-        it("should return 'invalidid' when ID is invalid or level isn't found", async function () {
+        it("should return false when ID is invalid or level isn't found", async function () {
             var response = await bsApi.getMapInfo(getMapInfo.invalidID);
-            assert.equal(response.status, "invalidid");
+            assert.equal(response.status, false);
         });
     });
 
     describe("no ID getMapInfo()", async function () {
-        it("should return false if ID is an empty string", async function () {
+        it("should return 'invalidid' if ID is an empty string", async function () {
             var response = await bsApi.getMapInfo("");
-            assert.equal(response.status, false);
+            assert.equal(response.status, "invalidid");
         });
     });
 
@@ -419,7 +429,7 @@ describe("GetLatestMaps", async function () {
     });
 });
 
-describe.only("GetMapsByPlayCount", async function () {
+describe("GetMapsByPlayCount", async function () {
     describe("plain getMapsByPlayCount()", async function () {
         it("should return true and the maps", async function () {
             var response = await bsApi.getMapsByPlayCount();
@@ -442,6 +452,40 @@ describe.only("GetMapsByPlayCount", async function () {
         it("should return false if no maps are found on the page", async function () {
             var response = await bsApi.getMapsByPlayCount(getMapsByPlayCountValues.noMapsPage);
             assert.equal(response.status, false);
+        });
+    });
+    describe("simulated network error getMapsByPlayCount()", async function () {
+        it("should return 'fetcherror' if there is a network error", async function () {
+            nock.disableNetConnect();
+            var response = await bsApi.getMapsByPlayCount();
+            assert.equal(response.status, "fetcherror");
+        });
+    });
+});
+
+describe("GetUserByID", async function () {
+    describe("valid getUserByID()", async function () {
+        it("should return true and user data if the userID is valid and the user is found", async function () {
+            var response = await bsApi.getUserByID(getUserByIDValues.validID);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("invalid getUserByID()", async function () {
+        it("should return false if the userID is invalid or user is not found", async function () {
+            var response = await bsApi.getUserByID(getUserByIDValues.invalidID);
+            assert.equal(response.status, false);
+        });
+    });
+    describe("invalid (not a number) getUserByID()", async function () {
+        it("should return 'invalidid' if the userID is not a number", async function () {
+            var response = await bsApi.getUserByID(getUserByIDValues.invalidStringID);
+            assert.equal(response.status, "invalidid");
+        });
+    });
+    describe("too long userID getUserByID()", async function () {
+        it("should return 'toolongid' if the userID is longer than 9 characters", async function () {
+            var response = await bsApi.getUserByID(getUserByIDValues.tooLongID);
+            assert.equal(response.status, "toolongid");
         });
     });
 });

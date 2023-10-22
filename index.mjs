@@ -35,6 +35,7 @@ const apiURLs = {
     getCollaborationMapsFromUserID: "/maps/collaborations/",
     getLatestMaps: "/maps/latest",
     getMapsByPlayCount: "/maps/plays/",
+    getUserByID: "/users/id/",
 };
 const sortOptions = ["FIRST_PUBLISHED", "UPDATED", "LAST_PUBLISHED", "CREATED", "CURATED"];
 
@@ -75,9 +76,11 @@ class BeatSaverAPI {
     It was duplicated too many times.
     Also good for catching edge cases.
     */
-    unhandledError(error) {
+    unhandledError(errorCode) {
         if (debug) {
-            throw new Error(`Unhandled error code! (${error.code})`);
+            throw new Error(`Unhandled error code! (${errorCode})`);
+        } else {
+            return this.apiResponse("unhandlederror", errorCode);
         }
     }
 
@@ -99,19 +102,20 @@ class BeatSaverAPI {
                 return this.apiResponse("fetcherror", error);
 
             default:
-                this.unhandledError(error);
+                return this.unhandledError(error.code);
         }
     }
 
     /*
     Returns false if no id is specified.
-    Returns an object with data and status.
-    Status can be: "invalidid" (data is null), true (api response will be returned as data), "fetcherror" (axios error will be returned as data)
+    Returns true and user data.
+    Returns "invalidid" if id is null or an empty string.
+    Returns "fetcherror" if there are any network errors.
     */
     async getMapInfo(id) {
         //check if id isn't null or an empty string
         if (isnullorempty(id)) {
-            return this.apiResponse(false);
+            return this.apiResponse("invalidid");
         }
         try {
             var response = await this.axiosInstance.get(`${apiURLs.getMapInfoID}${id}`);
@@ -119,13 +123,12 @@ class BeatSaverAPI {
                 case 200:
                     return this.apiResponse(true, response.data);
                 default:
-                    this.unhandledError(error);
+                    return this.unhandledError(response.status);
             }
-            return apiResponse;
         } catch (error) {
             switch (error.code) {
                 case "ERR_BAD_REQUEST":
-                    return this.apiResponse("invalidid");
+                    return this.apiResponse(false);
 
                 default:
                     return this.handleGenericErrors(error);
@@ -160,7 +163,7 @@ class BeatSaverAPI {
                 case 200:
                     return this.apiResponse(Object.keys(response.data).length == 0 ? false : true, Object.keys(response.data).length == 0 ? null : response.data);
                 default:
-                    this.unhandledError(error);
+                    return this.unhandledError(response.status);
             }
         } catch (error) {
             return this.handleGenericErrors(error);
@@ -194,7 +197,7 @@ class BeatSaverAPI {
                 case 200:
                     return this.apiResponse(Object.keys(response.data).length == 0 ? false : true, Object.keys(response.data).length == 0 ? null : response.data);
                 default:
-                    this.unhandledError(error);
+                    return this.unhandledError(response.status);
             }
         } catch (error) {
             switch (error.code) {
@@ -242,7 +245,7 @@ class BeatSaverAPI {
                 case 200:
                     return this.apiResponse(response.data.docs.length == 0 ? false : true, response.data.docs.length == 0 ? null : response.data);
                 default:
-                    this.unhandledError(error);
+                    return this.unhandledError(response.status);
             }
         } catch (error) {
             return this.handleGenericErrors(error);
@@ -296,7 +299,7 @@ class BeatSaverAPI {
                 case 200:
                     return this.apiResponse(response.data.docs.length == 0 ? false : true, response.data.docs.length == 0 ? null : response.data);
                 default:
-                    this.unhandledError(error);
+                    return this.unhandledError(response.status);
             }
         } catch (error) {
             return this.handleGenericErrors(error);
@@ -363,7 +366,7 @@ class BeatSaverAPI {
                 case 200:
                     return this.apiResponse(response.data.docs.length == 0 ? false : true, response.data.docs.length == 0 ? null : response.data);
                 default:
-                    this.unhandledError(error);
+                    return this.unhandledError(response.status);
             }
         } catch (error) {
             return this.handleGenericErrors(error);
@@ -371,6 +374,7 @@ class BeatSaverAPI {
     }
 
     /*
+    Returns "fetcherror" in case of any network errors.
     Returns true if the maps on the page are found.
     Returns false if no maps are found.
     Returns "invalidpage" if the page is not a number.
@@ -393,10 +397,46 @@ class BeatSaverAPI {
                 case 200:
                     return this.apiResponse(response.data.docs.length == 0 ? false : true, response.data.docs.length == 0 ? null : response.data);
                 default:
-                    this.unhandledError();
+                    return this.unhandledError(response.status);
             }
         } catch (error) {
             return this.handleGenericErrors(error);
+        }
+    }
+
+    /*
+    Returns "fetcherror" in case of any network errors.
+    Returns false if user isn't found.
+    Returns true and user data if user is found.
+    Returns "invalidid" if userID is not a number.
+    Returns "toolongid" if userID is higher than 999999999 or longer than 9 characters.
+    */
+    async getUserByID(userID) {
+        if (isNaN(userID)) {
+            return this.apiResponse("invalidid");
+        }
+        //ensures that if it's null or a string it will be 0 or the string in numbers
+        userID = Number(userID);
+        //check if userID is not longer than 9 characters
+        if (userID > 999999999) {
+            return this.apiResponse("toolongid");
+        }
+        try {
+            var response = await this.axiosInstance.get(`${apiURLs.getUserByID}/${userID}`);
+            switch (response.status) {
+                case 200:
+                    return this.apiResponse(true, response.data);
+                default:
+                    return this.unhandledError(response.status);
+            }
+        } catch (error) {
+            switch (error.code) {
+                case "ERR_BAD_REQUEST":
+                    return this.apiResponse(false);
+
+                default:
+                    return this.handleGenericErrors(error);
+            }
         }
     }
 }
