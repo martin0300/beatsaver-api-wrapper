@@ -33,7 +33,9 @@ const apiURLs = {
     getMapInfoHashes: "/maps/hash/",
     getMapsFromUserID: "/maps/uploader/",
     getCollaborationMapsFromUserID: "/maps/collaborations/",
+    getLatestMaps: "/maps/latest",
 };
+const sortOptions = ["FIRST_PUBLISHED", "UPDATED", "LAST_PUBLISHED", "CREATED", "CURATED"];
 
 function isnullorempty(string) {
     if (string == null) {
@@ -69,6 +71,16 @@ class BeatSaverAPI {
     }
 
     /*
+    It was duplicated too many times.
+    Also good for catching edge cases.
+    */
+    unhandledError(error) {
+        if (debug) {
+            throw new Error(`Unhandled error code! (${error.code})`);
+        }
+    }
+
+    /*
     Used when errors doesn't mean anything to the result of the call.
     Like in getMapInfo() the 404 means that the map doesn't exist. You can't use this there.
     In any other case the 404 or 'ENOTFOUND' means there is something wrong with the network or an undocumented API error (like too long userID).
@@ -86,10 +98,7 @@ class BeatSaverAPI {
                 return this.apiResponse("fetcherror", error);
 
             default:
-                if (debug) {
-                    throw new Error(`Unhandled error code! (${error.code})`);
-                }
-                break;
+                this.unhandledError(error);
         }
     }
 
@@ -109,10 +118,7 @@ class BeatSaverAPI {
                 case 200:
                     return this.apiResponse(true, response.data);
                 default:
-                    if (debug) {
-                        throw new Error(`Unhandled status code! (${response.status})`);
-                    }
-                    break;
+                    this.unhandledError(error);
             }
             return apiResponse;
         } catch (error) {
@@ -153,10 +159,7 @@ class BeatSaverAPI {
                 case 200:
                     return this.apiResponse(Object.keys(response.data).length == 0 ? false : true, Object.keys(response.data).length == 0 ? null : response.data);
                 default:
-                    if (debug) {
-                        throw new Error(`Unhandled status code! (${response.status})`);
-                    }
-                    break;
+                    this.unhandledError(error);
             }
         } catch (error) {
             return this.handleGenericErrors(error);
@@ -190,10 +193,7 @@ class BeatSaverAPI {
                 case 200:
                     return this.apiResponse(Object.keys(response.data).length == 0 ? false : true, Object.keys(response.data).length == 0 ? null : response.data);
                 default:
-                    if (debug) {
-                        throw new Error(`Unhandled status code! (${response.status})`);
-                    }
-                    break;
+                    this.unhandledError(error);
             }
         } catch (error) {
             switch (error.code) {
@@ -235,10 +235,7 @@ class BeatSaverAPI {
                 case 200:
                     return this.apiResponse(response.data.docs.length == 0 ? false : true, response.data.docs.length == 0 ? null : response.data);
                 default:
-                    if (debug) {
-                        throw new Error(`Unhandled status code! (${response.status})`);
-                    }
-                    break;
+                    this.unhandledError(error);
             }
         } catch (error) {
             return this.handleGenericErrors(error);
@@ -278,17 +275,16 @@ class BeatSaverAPI {
         }
         try {
             var response = await this.axiosInstance.get(`${apiURLs.getCollaborationMapsFromUserID}${userID}`, {
-                pageSize: pageSize,
-                ...(before != null ? { before } : {}),
+                params: {
+                    pageSize: pageSize,
+                    ...(before != null ? { before } : {}),
+                },
             });
             switch (response.status) {
                 case 200:
                     return this.apiResponse(response.data.docs.length == 0 ? false : true, response.data.docs.length == 0 ? null : response.data);
                 default:
-                    if (debug) {
-                        throw new Error(`Unhandled status code! (${response.status})`);
-                    }
-                    break;
+                    this.unhandledError(error);
             }
         } catch (error) {
             return this.handleGenericErrors(error);
@@ -301,11 +297,11 @@ class BeatSaverAPI {
     Returns "invalidbeforedate" if before date is not in the correct format. (YYYY-MM-DDTHH:MM:SS+00:00) (Minimum year is 1970, Maximum is 9999)
     Returns "invalidafterdate" if after date is not in the correct format. (YYYY-MM-DDTHH:MM:SS+00:00) (Minimum year is 1970, Maximum is 9999)
     Returns "invalidpagesize" if pageSize isn't a number.
-    Returns "invalidsort" if sort value is invalid. (Valid: FIRST_PUBLISHED, UPDATED, LAST_PUBLISHED, CREATED, CURATED)
+    Returns "invalidsort" if sort option is invalid. (Valid: FIRST_PUBLISHED, UPDATED, LAST_PUBLISHED, CREATED, CURATED)
     Returns true if the maps are found.
     Returns false if no maps are found.
     */
-    async getLatestMaps(after = null, automapper = null, before = null, pageSize = 20, sort = false) {
+    async getLatestMaps(after = null, automapper = null, before = null, pageSize = 20, sort = null) {
         //check after date
         if (after != null) {
             if (!this.checkDate(after)) {
@@ -330,8 +326,30 @@ class BeatSaverAPI {
                 return this.apiResponse("invalidautomapper");
             }
         }
-        //check if sort is a valid sort (Valid: FIRST_PUBLISHED, UPDATED, LAST_PUBLISHED, CREATED, CURATED)
+        //check if sort is a valid sort option (Valid: FIRST_PUBLISHED, UPDATED, LAST_PUBLISHED, CREATED, CURATED)
         if (sort != null) {
+            if (!sortOptions.includes(sort)) {
+                return this.apiResponse("invalidsort");
+            }
+        }
+        try {
+            var response = await this.axiosInstance.get(apiURLs.getLatestMaps, {
+                params: {
+                    pageSize: pageSize,
+                    ...(after != null ? { after } : {}),
+                    ...(automapper != null ? { automapper } : {}),
+                    ...(before != null ? { before } : {}),
+                    ...(sort != null ? { sort } : {}),
+                },
+            });
+            switch (response.status) {
+                case 200:
+                    return this.apiResponse(response.data.docs.length == 0 ? false : true, response.data.docs.length == 0 ? null : response.data);
+                default:
+                    this.unhandledError(error);
+            }
+        } catch (error) {
+            return this.handleGenericErrors(error);
         }
     }
 }

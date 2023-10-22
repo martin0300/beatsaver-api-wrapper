@@ -55,6 +55,13 @@ const getCollaborationMapsFromUserIDValues = {
     invalidDate: "1969-12-31T23:59:59+00:00",
 };
 
+const getLatestMapsValues = {
+    validDate: "2021-10-20T15:30:00+00:00",
+    invalidDate: "1969-12-31T23:59:59+00:00",
+    noMapsDate: "2001-10-20T15:30:00+00:00",
+    validSort: "CURATED",
+};
+
 afterEach(function () {
     nock.enableNetConnect();
 });
@@ -293,6 +300,94 @@ describe("GetCollaborationMapsFromUserID", async function () {
         it("should return 'fetcherror' if there is a network error", async function () {
             nock.disableNetConnect();
             var response = await bsApi.getCollaborationMapsFromUserID(getCollaborationMapsFromUserIDValues.validID);
+            assert.equal(response.status, "fetcherror");
+        });
+    });
+});
+
+describe("GetLatestMaps", async function () {
+    describe("plain (no filters) getLatestMaps()", async function () {
+        it("should return true and the maps", async function () {
+            var response = await bsApi.getLatestMaps();
+            assert.equal(response.status, true);
+        });
+    });
+    describe("automapper true getLatestMaps()", async function () {
+        it("should return true and the maps with automapper and other levels", async function () {
+            var response = await bsApi.getLatestMaps(null, true);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("automapper false getLatestMaps()", async function () {
+        it("should return true and the maps without automapper and other levels", async function () {
+            var response = await bsApi.getLatestMaps(null, false);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("invalid automapper getLatestMaps()", async function () {
+        it("should return 'invalidautomapper' if the automapper value is not a boolean", async function () {
+            var response = await bsApi.getLatestMaps(null, "dsfsdfsd");
+            assert.equal(response.status, "invalidautomapper");
+        });
+    });
+    describe("valid after date getLatestMaps()", async function () {
+        it("should return true and the maps uploaded after the specified date", async function () {
+            var response = await bsApi.getLatestMaps(getLatestMapsValues.validDate);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("invalid after date getLatestMaps()", async function () {
+        it("should return 'invalidafterdate' if after date is invalid", async function () {
+            var response = await bsApi.getLatestMaps(getLatestMapsValues.invalidDate);
+            assert.equal(response.status, "invalidafterdate");
+        });
+    });
+    describe("valid before date getLatestMaps()", async function () {
+        it("should return true and the maps uploaded before the specified date", async function () {
+            var response = await bsApi.getLatestMaps(null, null, getLatestMapsValues.validDate);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("invalid before date getLatestMaps()", async function () {
+        it("should return 'invalidbeforedate' if before date is invalid", async function () {
+            var response = await bsApi.getLatestMaps(null, null, getLatestMapsValues.invalidDate);
+            assert.equal(response.status, "invalidbeforedate");
+        });
+    });
+    describe("valid pageSize getLatestMaps()", async function () {
+        it("should return true and the maps", async function () {
+            var response = await bsApi.getLatestMaps(null, null, null, 20);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("invalid pageSize getLatestMaps()", async function () {
+        it("should return 'invalidpagesize' if the page size is not a number", async function () {
+            var response = await bsApi.getLatestMaps(null, null, null, "fdsfsd");
+            assert.equal(response.status, "invalidpagesize");
+        });
+    });
+    describe("valid sort option getLatestMaps()", async function () {
+        it("should return true and the maps with the sort option", async function () {
+            var response = await bsApi.getLatestMaps(null, null, null, 20, getLatestMapsValues.validSort);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("invalid sort option getLatestMaps()", async function () {
+        it("should return 'invalidsort' if the sort option is not a valid sort option", async function () {
+            var response = await bsApi.getLatestMaps(null, null, null, 20, "notavalidsortoption");
+            assert.equal(response.status, "invalidsort");
+        });
+    });
+    describe("no maps getLatestMaps()", async function () {
+        it("should return false if there are no maps found with the filters (simulated using the before date 2001)", async function () {
+            var response = await bsApi.getLatestMaps(null, null, getLatestMapsValues.noMapsDate);
+            assert.equal(response.status, false);
+        });
+    });
+    describe("simulated network error getLatestMaps()", async function () {
+        it("should return 'fetcherror' if there is a network error", async function () {
+            nock.disableNetConnect();
+            var response = await bsApi.getLatestMaps();
             assert.equal(response.status, "fetcherror");
         });
     });
