@@ -56,6 +56,37 @@ function isnullorempty(string) {
     }
 }
 
+//search releated stuff
+const checkBooleans = {
+    automapper: "invalidautomapper",
+    chroma: "invalidchroma",
+    cinema: "invalidcinema",
+    curated: "invalidcurated",
+    fullSpread: "invalidfullspread",
+    me: "invalidme",
+    noodle: "invalidnoodle",
+    ranked: "invalidranked",
+    verified: "invalidverified",
+};
+
+const checkNumbers = {
+    maxBpm: "invalidmaxbpm",
+    maxNps: "invalidmaxnps",
+    maxRating: "invalidmaxrating",
+    minBpm: "invalidminbpm",
+    minNps: "invalidminnps",
+    minRating: "invalidminrating",
+    minDuration: "invalidminduration",
+    maxDuration: "invalidmaxduration",
+};
+
+const searchSortOptions = ["Latest", "Relevance", "Rating", "Curated"];
+
+const checkDates = {
+    from: "invalidfromdate",
+    to: "invalidtodate",
+};
+
 class BeatSaverAPI {
     constructor(customUserAgent = null) {
         this.userAgent = `beatsaver-api-wrapper/${beatSaverAPIVersion}${customUserAgent !== null ? ` ${customUserAgent}` : ""}`;
@@ -483,6 +514,99 @@ class BeatSaverAPI {
                 default:
                     return this.handleGenericErrors(error);
             }
+        }
+    }
+
+    /*
+    Added tags so you can better see the different return values.
+
+    NETWORK ERRORS:
+    Returns "fetcherror" in case of any network errors.
+    Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
+
+    BOOLEAN ERRORS:
+    Returns "invalidautomapper" if automapper is not a boolean.
+    Returns "invalidchroma" if chroma is not a boolean.
+    Returns "invalidcinema" if cinema is not a boolean.
+    Returns "invalidcurated" if curated is not a boolean.
+    Returns "invalidfullspread" if fullSpread is not a boolean.
+    Returns "invalidme" if me is not a boolean. (what is me??)
+    Returns "invalidnoodle" if noodle is not a boolean.
+    Returns "invalidranked" if ranked is not a boolean.
+    Returns "invalidverified" if verified is not a boolean.
+
+    DATE ERRORS:
+    Returns "invalidfromdate" if from date is not in the correct format. (YYYY-MM-DDTHH:MM:SS+00:00) (Minimum year is 1970, Maximum is 9999)
+    Returns "invalidtodate" if to date is not in the correct format. (YYYY-MM-DDTHH:MM:SS+00:00) (Minimum year is 1970, Maximum is 9999)
+
+    NUMBER ERRORS:
+    Returns "invalidmaxbpm" if maxBpm is not a number.
+    Returns "invalidmaxnps" if maxNps is not a number.
+    Returns "invalidmaxrating" if maxRating is not a number.
+    Returns "invalidminbpm" if minBpm is not a number.
+    Returns "invalidminnps" if minNps is not a number.
+    Returns "invalidminrating" if minRating is not a number.
+    Returns "invalidpage" if page is not a number.
+    Returns "invalidminduration" if minDuration is not a number.
+    Returns "invalidmaxduration" if maxDuration is not a number.
+
+    STRING ERRORS:
+    Returns "invalidquery" if query is not a string or empty.
+
+    SORT ERRORS:
+    Returns "invalidtags" if tags are invalid.
+    Returns "invalidsortorder" if sortOrder is a valid sort option. (Latest, Relevance, Rating, Curated)
+
+    RETURN VALUES:
+    Returns true if there are maps found with the filters.
+    Returns false if there are no maps found with the filters.
+    */
+
+    async searchMaps(query = null, page = 0, filters = null) {
+        if (query != null && isnullorempty(query)) {
+            return this.apiResponse("invalidqurey");
+        }
+        if (isNaN(page)) {
+            return this.apiResponse("invalidpage");
+        }
+        page = Number(page);
+        if (filters != null) {
+            //booleans
+            for (var boolean in checkBooleans) {
+                if (filters[boolean] !== undefined && typeof filters[boolean] != "boolean") {
+                    return this.apiResponse(checkBooleans[boolean]);
+                }
+            }
+            //dates
+            for (var date in checkDates) {
+                if (filters[date] !== undefined && !this.checkDate(filters[date])) {
+                    return this.apiResponse(checkDates[date]);
+                }
+            }
+            //numbers
+            for (var number in checkNumbers) {
+                if (filters[number] !== undefined && isNaN(filters[number])) {
+                    return this.apiResponse(checkNumbers[number]);
+                } else if (filters[number] !== undefined && !isNaN(filters[number])) {
+                    //fix any null problems
+                    filters[number] = Number(filters[number]);
+                }
+            }
+            //sort options
+            if (filters.sortOrder !== undefined && !searchSortOptions.includes(filters.sortOrder)) {
+                return this.apiResponse("invalidsortorder");
+            }
+            //TODO: implement tags
+
+            if (query != null) {
+                //add query
+                filters["q"] = query;
+            }
+        } else {
+            filters = {
+                sortOrder: "Latest",
+                ...(query != null ? { q: query } : {}),
+            };
         }
     }
 }
