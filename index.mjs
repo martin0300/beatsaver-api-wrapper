@@ -44,7 +44,7 @@ function isnullorempty(string) {
     if (string == null) {
         return true;
     }
-    var string2 = string.split(" ").join("");
+    var string2 = string.toString().split(" ").join("");
     if (string2.length == 0) {
         return true;
     } else {
@@ -572,17 +572,29 @@ class BeatSaverAPI {
     Returns "invalidquery" if query is not a string or empty. (check in function)
 
     SORT ERRORS:
-    Returns "invalidtags" if tags are invalid. (check in function)
+    Returns "invalidtags" and the details about the error as data if any of the tags are invalid. (check in function)
     Returns "invalidsortorder" if sortOrder is a valid sort option. (Latest, Relevance, Rating, Curated) (check in function)
 
     RETURN VALUES:
     Returns true if there are maps found with the filters.
     Returns false if there are no maps found with the filters.
+
+    TAGS SYNTAX:
+    {   
+        //tags that are excluded from being in the results
+        excluded: [],
+        //normal tags (put tags here if you don't want any more specific)
+        tags: [],
+        //tag1 or tag2 will be included in the results
+        or: [
+            ["tag1", "tag2"]
+        ]
+    }
     */
 
-    async searchMaps(query = null, page = 0, filters = null) {
+    async searchMaps(page = 0, query = null, filters = null) {
         if (query != null && isnullorempty(query)) {
-            return this.apiResponse("invalidqurey");
+            return this.apiResponse("invalidquery");
         }
         if (isNaN(page)) {
             return this.apiResponse("invalidpage");
@@ -619,18 +631,73 @@ class BeatSaverAPI {
             if (filters.sortOrder !== undefined && !searchSortOptions.includes(filters.sortOrder)) {
                 return this.apiResponse("invalidsortorder");
             }
-            //TODO: implement tags
+            //tag compiler
+            if (filters.tags !== undefined && filters.tags.length != 0) {
+                var tagString = "";
+                //normal tags
+                for (var currentTag of filters.tags.tags) {
+                    if (typeof currentTag !== "string") {
+                        return this.apiResponse("invalidtags", {
+                            tagType: "tag",
+                            errorType: "string",
+                            tag: currentTag,
+                        });
+                    }
+                    tagString += `${currentTag},`;
+                }
+                //excluded tags
+                for (var currentExcludedTag of filters.tags.excluded) {
+                    if (typeof currentExcludedTag !== "string") {
+                        return this.apiResponse("invalidtags", {
+                            tagType: "excludedTag",
+                            errorType: "string",
+                            tag: currentTag,
+                        });
+                    }
+                    tagString += `!${currentExcludedTag},`;
+                }
+                //or tags
+                for (var currentORTags of filters.tags.or) {
+                    //check if both tags are specified
+                    if (currentORTags.length != 2) {
+                        return this.apiResponse("invalidtags", {
+                            tagType: "orTag",
+                            errorType: "insufficientData",
+                            tag: currentORTags,
+                        });
+                    }
+                    //check if both elements are strings
+                    if (typeof currentORTags[0] !== "string" || typeof currentORTags[1] !== "string") {
+                        return this.apiResponse("invalidtags", {
+                            tagType: "orTag",
+                            errorType: "string",
+                            tag: currentORTags,
+                        });
+                    }
+                    tagString += `${currentORTags[0]}|${currentORTags[1]},`;
+                }
+                if (tagString.length != 0) {
+                    tagString = tagString.slice(0, -1);
+                }
+                filters.tags = tagString;
+            }
 
             if (query != null) {
                 //add query
                 filters["q"] = query;
             }
+            if (filters.sortOrder === undefined) {
+                filters.sortOrder = "Latest";
+            }
         } else {
+            //sort order needs to be defined
             filters = {
                 sortOrder: "Latest",
                 ...(query != null ? { q: query } : {}),
             };
         }
+
+        return this.apiResponse(true);
     }
 }
 

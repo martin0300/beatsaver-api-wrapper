@@ -88,6 +88,11 @@ const getUserByNameValues = {
     invalidName: "fsdfsdfsdfsdfsdf",
 };
 
+const searchMapsValues = {
+    validDate: "2021-10-20T15:30:00+00:00",
+    invalidDate: "1969-12-31T23:59:59+00:00",
+};
+
 afterEach(function () {
     nock.enableNetConnect();
 });
@@ -529,6 +534,193 @@ describe("GetUserByName", async function () {
             nock.disableNetConnect();
             var response = await bsApi.getUserByName(getUserByNameValues.validName);
             assert.equal(response.status, "fetcherror");
+        });
+    });
+});
+
+describe.only("SearchMaps", async function () {
+    describe("Valid booleans", async function () {
+        describe("valid automapper searchMaps()", async function () {
+            it("should return true if automapper is a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    automapper: true,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid chroma searchMaps()", async function () {
+            it("should return true if chroma is a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    chroma: true,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid cinema searchMaps()", async function () {
+            it("should return true if cinema is a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    cinema: true,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid curated searchMaps()", async function () {
+            it("should return true if curated is a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    curated: true,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid fullSpread searchMaps()", async function () {
+            it("should return true if fullSpread is a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    fullSpread: true,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid me searchMaps()", async function () {
+            it("should return true if me is a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    me: true,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid noodle searchMaps()", async function () {
+            it("should return true if noodle is a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    noodle: true,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid ranked searchMaps()", async function () {
+            it("should return true if ranked is a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    ranked: true,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid verified searchMaps()", async function () {
+            it("should return true if verified is a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    verified: true,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+    });
+    describe("Invalid booleans", async function () {
+        describe("invalid automapper searchMaps()", async function () {
+            it("should return 'invalidautomapper' if automapper isn't a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    automapper: "invalid",
+                });
+                assert.equal(response.status, "invalidautomapper");
+            });
+        });
+        describe("invalid chroma searchMaps()", async function () {
+            it("should return 'invalidchroma' if chroma isn't a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    chroma: "invalid",
+                });
+                assert.equal(response.status, "invalidchroma");
+            });
+        });
+        describe("invalid cinema searchMaps()", async function () {
+            it("should return 'invalidcinema' if cinema isn't a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    cinema: "invalid",
+                });
+                assert.equal(response.status, "invalidcinema");
+            });
+        });
+        describe("invalid curated searchMaps()", async function () {
+            it("should return 'invalidcurated' if curated isn't a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    curated: "invalid",
+                });
+                assert.equal(response.status, "invalidcurated");
+            });
+        });
+        describe("invalid fullSpread searchMaps()", async function () {
+            it("should return 'invalidfullspread' if fullSpread isn't a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    fullSpread: "invalid",
+                });
+                assert.equal(response.status, "invalidfullspread");
+            });
+        });
+        describe("invalid me searchMaps()", async function () {
+            it("should return 'invalidme' if me isn't a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    me: "invalid",
+                });
+                assert.equal(response.status, "invalidme");
+            });
+        });
+        describe("invalid noodle searchMaps()", async function () {
+            it("should return 'invalidnoodle' if noodle isn't a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    noodle: "invalid",
+                });
+                assert.equal(response.status, "invalidnoodle");
+            });
+        });
+        describe("invalid ranked searchMaps()", async function () {
+            it("should return 'invalidranked' if ranked isn't a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    ranked: "invalid",
+                });
+                assert.equal(response.status, "invalidranked");
+            });
+        });
+        describe("invalid verified searchMaps()", async function () {
+            it("should return 'invalidverified' if verified isn't a boolean", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    verified: "invalid",
+                });
+                assert.equal(response.status, "invalidverified");
+            });
+        });
+    });
+    describe("Valid date", async function () {
+        describe("valid from date searchMaps()", async function () {
+            it("should return true if the from date is valid", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    from: searchMapsValues.validDate,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid to date searchMaps()", async function () {
+            it("should return true if the to date is valid", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    to: searchMapsValues.validDate,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+    });
+    describe("Invalid date", async function () {
+        describe("invalid from date searchMaps()", async function () {
+            it("should return 'invalidfromdate' if from date is not in the correct format", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    from: searchMapsValues.invalidDate,
+                });
+                assert.equal(response.status, "invalidfromdate");
+            });
+        });
+        describe("invalid to date searchMaps()", async function () {
+            it("should return 'invalidtodate' if to date is not in the correct format", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    to: searchMapsValues.invalidDate,
+                });
+                assert.equal(response.status, "invalidtodate");
+            });
         });
     });
 });
