@@ -667,10 +667,10 @@ class BeatSaverAPI {
                 return this.apiResponse("invalidsortorder");
             }
             //tag compiler
-            if (filters.tags !== undefined && filters.tags.length != 0) {
+            if (filters.tags !== undefined && typeof filters.tags === "object" && filters.tags !== null && Object.keys(filters.tags).length != 0) {
                 var tagString = "";
                 //normal tags
-                if (filters.tags.tags !== undefined) {
+                if (filters.tags.tags !== undefined && typeof filters.tags.tags === "object" && filters.tags.tags !== null) {
                     for (var currentTag of filters.tags.tags) {
                         if (typeof currentTag !== "string") {
                             return this.apiResponse("invalidtags", {
@@ -690,7 +690,7 @@ class BeatSaverAPI {
                     }
                 }
                 //excluded tags
-                if (filters.tags.excluded !== undefined) {
+                if (filters.tags.excluded !== undefined && typeof filters.tags.excluded === "object" && filters.tags.excluded !== null) {
                     for (var currentExcludedTag of filters.tags.excluded) {
                         if (typeof currentExcludedTag !== "string") {
                             return this.apiResponse("invalidtags", {
@@ -710,7 +710,7 @@ class BeatSaverAPI {
                     }
                 }
                 //or tags
-                if (filters.tags.or !== undefined) {
+                if (filters.tags.or !== undefined && typeof filters.tags.or === "object" && filters.tags.or !== null) {
                     for (var currentORTags of filters.tags.or) {
                         //check if both tags are specified
                         if (currentORTags.length != 2) {
@@ -740,8 +740,8 @@ class BeatSaverAPI {
                 }
                 if (tagString.length != 0) {
                     tagString = tagString.slice(0, -1);
+                    filters.tags = tagString;
                 }
-                filters.tags = tagString;
             }
 
             if (query != null) {
@@ -758,7 +758,6 @@ class BeatSaverAPI {
                 ...(query != null ? { q: query } : {}),
             };
         }
-
         try {
             var response = await this.axiosInstance.get(`${apiURLs.searchMaps}/${page}`, {
                 params: filters,
