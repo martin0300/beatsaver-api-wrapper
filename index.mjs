@@ -41,10 +41,13 @@ const apiURLs = {
 const sortOptions = ["FIRST_PUBLISHED", "UPDATED", "LAST_PUBLISHED", "CREATED", "CURATED"];
 
 function isnullorempty(string) {
+    if (typeof string !== "string") {
+        return true;
+    }
     if (string == null) {
         return true;
     }
-    var string2 = string.toString().split(" ").join("");
+    var string2 = string.split(" ").join("");
     if (string2.length == 0) {
         return true;
     } else {
@@ -590,6 +593,34 @@ class BeatSaverAPI {
             ["tag1", "tag2"]
         ]
     }
+
+    TAGS ERRORS:
+    All tags errors return "invalidtags" as the status.
+    The information is in the data of the response.
+
+    TagType "tag":
+    ErrorType: "string"
+    Reason: Element is not a string.
+
+    ErrorType: "emptystring":
+    Reason: String is empty.
+    <-------------------------------->
+    TagType: "excludedTag":
+    ErrorType: "string"
+    Reason: Element is not a string.
+
+    ErrorType: "emptystring":
+    Reason: String is empty.
+    <-------------------------------->
+    TagType: "orTag":
+    ErrorType: "insufficientdata"
+    Reason: Array must contain an array that must have two elements.
+
+    ErrorType: "string"
+    Reason: One of the elements in the array is not a string.
+
+    ErrorType: "emptystring":
+    Reason: One of the strings in the array is empty.
     */
 
     async searchMaps(page = 0, query = null, filters = null) {
@@ -638,46 +669,73 @@ class BeatSaverAPI {
             if (filters.tags !== undefined && filters.tags.length != 0) {
                 var tagString = "";
                 //normal tags
-                for (var currentTag of filters.tags.tags) {
-                    if (typeof currentTag !== "string") {
-                        return this.apiResponse("invalidtags", {
-                            tagType: "tag",
-                            errorType: "string",
-                            tag: currentTag,
-                        });
+                if (filters.tags.tags !== undefined) {
+                    for (var currentTag of filters.tags.tags) {
+                        if (typeof currentTag !== "string") {
+                            return this.apiResponse("invalidtags", {
+                                tagType: "tag",
+                                errorType: "string",
+                                tag: currentTag,
+                            });
+                        }
+                        if (isnullorempty(currentTag)) {
+                            return this.apiResponse("invalidtags", {
+                                tagType: "tag",
+                                errorType: "emptystring",
+                                tag: currentTag,
+                            });
+                        }
+                        tagString += `${currentTag},`;
                     }
-                    tagString += `${currentTag},`;
                 }
                 //excluded tags
-                for (var currentExcludedTag of filters.tags.excluded) {
-                    if (typeof currentExcludedTag !== "string") {
-                        return this.apiResponse("invalidtags", {
-                            tagType: "excludedTag",
-                            errorType: "string",
-                            tag: currentTag,
-                        });
+                if (filters.tags.excluded !== undefined) {
+                    for (var currentExcludedTag of filters.tags.excluded) {
+                        if (typeof currentExcludedTag !== "string") {
+                            return this.apiResponse("invalidtags", {
+                                tagType: "excludedTag",
+                                errorType: "string",
+                                tag: currentTag,
+                            });
+                        }
+                        if (isnullorempty(currentExcludedTag)) {
+                            return this.apiResponse("invalidtags", {
+                                tagType: "excludedTag",
+                                errorType: "emptystring",
+                                tag: currentTag,
+                            });
+                        }
+                        tagString += `!${currentExcludedTag},`;
                     }
-                    tagString += `!${currentExcludedTag},`;
                 }
                 //or tags
-                for (var currentORTags of filters.tags.or) {
-                    //check if both tags are specified
-                    if (currentORTags.length != 2) {
-                        return this.apiResponse("invalidtags", {
-                            tagType: "orTag",
-                            errorType: "insufficientData",
-                            tag: currentORTags,
-                        });
+                if (filters.tags.or !== undefined) {
+                    for (var currentORTags of filters.tags.or) {
+                        //check if both tags are specified
+                        if (currentORTags.length != 2) {
+                            return this.apiResponse("invalidtags", {
+                                tagType: "orTag",
+                                errorType: "insufficientdata",
+                                tag: currentORTags,
+                            });
+                        }
+                        //check if both elements are strings
+                        if (typeof currentORTags[0] !== "string" || typeof currentORTags[1] !== "string") {
+                            return this.apiResponse("invalidtags", {
+                                tagType: "orTag",
+                                errorType: "string",
+                                tag: currentORTags,
+                            });
+                        }
+                        if (isnullorempty(currentORTags[0]) || isnullorempty(currentORTags[1])) {
+                            return this.apiResponse("invalidtags", {
+                                tagType: "orTag",
+                                errorType: "emptystring",
+                                tag: currentORTags,
+                            });
+                        }
+                        tagString += `${currentORTags[0]}|${currentORTags[1]},`;
                     }
-                    //check if both elements are strings
-                    if (typeof currentORTags[0] !== "string" || typeof currentORTags[1] !== "string") {
-                        return this.apiResponse("invalidtags", {
-                            tagType: "orTag",
-                            errorType: "string",
-                            tag: currentORTags,
-                        });
-                    }
-                    tagString += `${currentORTags[0]}|${currentORTags[1]},`;
                 }
                 if (tagString.length != 0) {
                     tagString = tagString.slice(0, -1);

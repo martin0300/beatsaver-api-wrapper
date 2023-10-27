@@ -97,6 +97,43 @@ const searchMapsValues = {
     invalidMaxDurationLength: 9999999999,
     validMinDurationLength: 999999999,
     invalidMinDurationLength: 9999999999,
+    validSortOrder: "Rating",
+    invalidSortOrder: "notarealsortorder",
+    validTags: {
+        or: [
+            ["tech", "pop"],
+            ["anime", "balanced"],
+        ],
+        tags: ["speed", "speedcore"],
+        excluded: ["dance-style", "rock"],
+    },
+    invalidORTags: {
+        insufficientData: {
+            or: [["tech"]],
+        },
+        string: {
+            or: [[false, "tech"]],
+        },
+        emptystring: {
+            or: [["", ""]],
+        },
+    },
+    invalidTags: {
+        string: {
+            tags: [false],
+        },
+        emptystring: {
+            tags: [""],
+        },
+    },
+    invalidExcludedTags: {
+        string: {
+            excluded: [false],
+        },
+        emptystring: {
+            excluded: [""],
+        },
+    },
 };
 
 afterEach(function () {
@@ -544,6 +581,7 @@ describe("GetUserByName", async function () {
     });
 });
 
+//aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 describe.only("SearchMaps", async function () {
     describe("Valid booleans", async function () {
         describe("valid automapper searchMaps()", async function () {
@@ -918,6 +956,130 @@ describe.only("SearchMaps", async function () {
                     minDuration: searchMapsValues.invalidMinDurationLength,
                 });
                 assert.equal(response.status, "toolongminduration");
+            });
+        });
+    });
+    describe("Valid strings", async function () {
+        describe("valid query searchMaps()", async function () {
+            it("should return true if query is a valid string", async function () {
+                var response = await bsApi.searchMaps(0, "test");
+                assert.equal(response.status, true);
+            });
+        });
+    });
+    describe("Invalid strings", async function () {
+        describe("invalid query not a string searchMaps()", async function () {
+            it("should return 'invalidquery' if query is not a string", async function () {
+                var response = await bsApi.searchMaps(0, false);
+                assert.equal(response.status, "invalidquery");
+            });
+        });
+        describe("invalid query empty string searchMaps()", async function () {
+            it("should return 'invalidquery' if query is empty", async function () {
+                var response = await bsApi.searchMaps(0, "");
+                assert.equal(response.status, "invalidquery");
+            });
+        });
+    });
+    describe("Sort order", async function () {
+        describe("valid sortOrder searchMaps()", async function () {
+            it("should return true if sortOrder is a valid sort option", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    sortOrder: searchMapsValues.validSortOrder,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("invalid sortOrder searchMaps()", async function () {
+            it("should return 'invalidsortorder' if sortOrder is an invalid sort option", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    sortOrder: searchMapsValues.invalidSortOrder,
+                });
+                assert.equal(response.status, "invalidsortorder");
+            });
+        });
+    });
+    describe("Valid tags", async function () {
+        describe("valid full tags searchMaps()", async function () {
+            it("should return true if all of the tags are in the correct format", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    tags: searchMapsValues.validTags,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+    });
+    describe("Invalid tags", async function () {
+        describe("invalid tags string searchMaps()", async function () {
+            it("should return 'invalidtags' and errorType: 'string' if element in array is not a string", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    tags: searchMapsValues.invalidTags.string,
+                });
+                assert.equal(response.status, "invalidtags");
+                assert.equal(response.data.tagType, "tag");
+                assert.equal(response.data.errorType, "string");
+            });
+        });
+        describe("invalid tags empty string searchMaps()", async function () {
+            it("should return 'invalidtags' and errorType: 'emptystring' if string in array is an empty string", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    tags: searchMapsValues.invalidTags.emptystring,
+                });
+                assert.equal(response.status, "invalidtags");
+                assert.equal(response.data.tagType, "tag");
+                assert.equal(response.data.errorType, "emptystring");
+            });
+        });
+
+        describe("invalid excludedTags string searchMaps()", async function () {
+            it("should return 'invalidtags' and errorType: 'string' if element in array is not a string", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    tags: searchMapsValues.invalidExcludedTags.string,
+                });
+                assert.equal(response.status, "invalidtags");
+                assert.equal(response.data.tagType, "excludedTag");
+                assert.equal(response.data.errorType, "string");
+            });
+        });
+        describe("invalid excludedTags empty string searchMaps()", async function () {
+            it("should return 'invalidtags' and errorType: 'emptystring' if string in array is an empty string", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    tags: searchMapsValues.invalidExcludedTags.emptystring,
+                });
+                assert.equal(response.status, "invalidtags");
+                assert.equal(response.data.tagType, "excludedTag");
+                assert.equal(response.data.errorType, "emptystring");
+            });
+        });
+
+        describe("invalid orTags string searchMaps()", async function () {
+            it("should return 'invalidtags' and errorType: 'string' if one of elements in the array is not a string", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    tags: searchMapsValues.invalidORTags.string,
+                });
+                assert.equal(response.status, "invalidtags");
+                assert.equal(response.data.tagType, "orTag");
+                assert.equal(response.data.errorType, "string");
+            });
+        });
+        describe("invalid orTags empty string searchMaps()", async function () {
+            it("should return 'invalidtags' and errorType: 'emptystring' if one of the strings in an array is an empty string", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    tags: searchMapsValues.invalidORTags.emptystring,
+                });
+                assert.equal(response.status, "invalidtags");
+                assert.equal(response.data.tagType, "orTag");
+                assert.equal(response.data.errorType, "emptystring");
+            });
+        });
+        describe("invalid orTags insufficient data searchMaps()", async function () {
+            it("should return 'invalidtags' and errorType: 'insufficientdata' if there are less than two elements in the array", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    tags: searchMapsValues.invalidORTags.insufficientData,
+                });
+                assert.equal(response.status, "invalidtags");
+                assert.equal(response.data.tagType, "orTag");
+                assert.equal(response.data.errorType, "insufficientdata");
             });
         });
     });
