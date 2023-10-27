@@ -80,6 +80,17 @@ const checkNumbers = {
     maxDuration: "invalidmaxduration",
 };
 
+const checkNumberLengths = {
+    minDuration: {
+        limit: 9,
+        error: "toolongminduration",
+    },
+    maxDuration: {
+        limit: 9,
+        error: "toolongmaxduration",
+    },
+};
+
 const searchSortOptions = ["Latest", "Relevance", "Rating", "Curated"];
 
 const checkDates = {
@@ -520,6 +531,8 @@ class BeatSaverAPI {
     /*
     Added tags so you can better see the different return values.
 
+    Checks are stored in objects at the top of the file or in the function (specified).
+
     NETWORK ERRORS:
     Returns "fetcherror" in case of any network errors.
     Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
@@ -546,16 +559,21 @@ class BeatSaverAPI {
     Returns "invalidminbpm" if minBpm is not a number.
     Returns "invalidminnps" if minNps is not a number.
     Returns "invalidminrating" if minRating is not a number.
-    Returns "invalidpage" if page is not a number.
+    Returns "invalidpage" if page is not a number. (check in function)
     Returns "invalidminduration" if minDuration is not a number.
     Returns "invalidmaxduration" if maxDuration is not a number.
 
+    NUMBER LENGTH ERRORS:
+    Returns "toolongpage" if page is longer than 18 characters. (check in function)
+    Returns "toolongmaxduration" if maxDuration is longer than 9 characters.
+    Returns "toolongminduration" if minDuration is longer than 9 characters.
+
     STRING ERRORS:
-    Returns "invalidquery" if query is not a string or empty.
+    Returns "invalidquery" if query is not a string or empty. (check in function)
 
     SORT ERRORS:
-    Returns "invalidtags" if tags are invalid.
-    Returns "invalidsortorder" if sortOrder is a valid sort option. (Latest, Relevance, Rating, Curated)
+    Returns "invalidtags" if tags are invalid. (check in function)
+    Returns "invalidsortorder" if sortOrder is a valid sort option. (Latest, Relevance, Rating, Curated) (check in function)
 
     RETURN VALUES:
     Returns true if there are maps found with the filters.
@@ -590,6 +608,11 @@ class BeatSaverAPI {
                 } else if (filters[number] !== undefined && !isNaN(filters[number])) {
                     //fix any null problems
                     filters[number] = Number(filters[number]);
+
+                    //check number character length
+                    if (checkNumberLengths[number] !== undefined && filters[number].toString().length > checkNumberLengths[number].limit) {
+                        return this.apiResponse(checkNumberLengths[number]);
+                    }
                 }
             }
             //sort options
