@@ -91,6 +91,12 @@ const getUserByNameValues = {
 const searchMapsValues = {
     validDate: "2021-10-20T15:30:00+00:00",
     invalidDate: "1969-12-31T23:59:59+00:00",
+    validPageLength: 99999999999999999,
+    invalidPageLength: 9999999999999999999,
+    validMaxDurationLength: 999999999,
+    invalidMaxDurationLength: 9999999999,
+    validMinDurationLength: 999999999,
+    invalidMinDurationLength: 9999999999,
 };
 
 afterEach(function () {
@@ -720,6 +726,198 @@ describe.only("SearchMaps", async function () {
                     to: searchMapsValues.invalidDate,
                 });
                 assert.equal(response.status, "invalidtodate");
+            });
+        });
+    });
+    describe("Valid numbers", async function () {
+        describe("valid maxBpm searchMaps()", async function () {
+            it("should return true if maxBpm is a number", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    maxBpm: 5,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid maxNps searchMaps()", async function () {
+            it("should return true if maxNps is a number", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    maxNps: 5,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid maxRating searchMaps()", async function () {
+            it("should return true if maxRating is a number", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    maxRating: 5,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid minBpm searchMaps()", async function () {
+            it("should return true if minBpm is a number", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    minBpm: 5,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid minNps searchMaps()", async function () {
+            it("should return true if minNps is a number", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    minNps: 5,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid minRating searchMaps()", async function () {
+            it("should return true if minRating is a number", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    minRating: 5,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid page searchMaps()", async function () {
+            it("should return true if page is a number", async function () {
+                var response = await bsApi.searchMaps(0);
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid minDuration searchMaps()", async function () {
+            it("should return true if minDuration is a number", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    minDuration: 5,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid maxDuration searchMaps()", async function () {
+            it("should return true if maxDuration is a number", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    maxDuration: 5,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+    });
+    describe("Invalid numbers", async function () {
+        describe("invalid maxBpm searchMaps()", async function () {
+            it("should return 'invalidmaxbpm' if maxBpm isn't a number", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    maxBpm: "dfsdf",
+                });
+                assert.equal(response.status, "invalidmaxbpm");
+            });
+        });
+        describe("invalid maxNps searchMaps()", async function () {
+            it("should return 'invalidmaxnps' if maxNps isn't a number", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    maxNps: "sdfd",
+                });
+                assert.equal(response.status, "invalidmaxnps");
+            });
+        });
+        describe("invalid maxRating searchMaps()", async function () {
+            it("should return 'invalidmaxrating' if maxRating isn't a number", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    maxRating: "sdfsdf",
+                });
+                assert.equal(response.status, "invalidmaxrating");
+            });
+        });
+        describe("invalid minBpm searchMaps()", async function () {
+            it("should return 'invalidminbpm' if minBpm isn't a number", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    minBpm: "sdff",
+                });
+                assert.equal(response.status, "invalidminbpm");
+            });
+        });
+        describe("invalid minNps searchMaps()", async function () {
+            it("should return 'invalidminnps' if minNps isn't a number", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    minNps: "sdfsd",
+                });
+                assert.equal(response.status, "invalidminnps");
+            });
+        });
+        describe("invalid minRating searchMaps()", async function () {
+            it("should return 'invalidminrating' if minRating isn't a number", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    minRating: "sdfsd",
+                });
+                assert.equal(response.status, "invalidminrating");
+            });
+        });
+        describe("invalid page searchMaps()", async function () {
+            it("should return 'invalidpage' if page isn't a number", async function () {
+                var response = await bsApi.searchMaps("sfsd");
+                assert.equal(response.status, "invalidpage");
+            });
+        });
+        describe("invalid minDuration searchMaps()", async function () {
+            it("should return 'invalidminduration' if minDuration isn't a number", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    minDuration: "sdfsd",
+                });
+                assert.equal(response.status, "invalidminduration");
+            });
+        });
+        describe("invalid maxDuration searchMaps()", async function () {
+            it("should return 'invalidmaxduration' if maxDuration isn't a number", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    maxDuration: "sdfsdf",
+                });
+                assert.equal(response.status, "invalidmaxduration");
+            });
+        });
+    });
+    describe("Valid character lengths", async function () {
+        describe("valid page character length searchMaps()", async function () {
+            it("should return true if page is not longer than 18 characters (always true JS limitation)", async function () {
+                var response = await bsApi.searchMaps(searchMapsValues.validPageLength);
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid maxDuration character length searchMaps()", async function () {
+            it("should return true if maxDuration is not longer than 9 characters", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    maxDuration: searchMapsValues.validMaxDurationLength,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid minDuration character length searchMaps()", async function () {
+            it("should return true if minDuration is not longer than 9 characters", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    minDuration: searchMapsValues.validMinDurationLength,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+    });
+    describe("Invalid character lengths", async function () {
+        describe("invalid page character length searchMaps()", async function () {
+            it("should return 'toolongpage' if page is longer than 18 characters", async function () {
+                var response = await bsApi.searchMaps(searchMapsValues.invalidPageLength);
+                assert.equal(response.status, "toolongpage");
+            });
+        });
+        describe("invalid maxDuration character length searchMaps()", async function () {
+            it("should return 'toolongmaxduration' if maxDuration is longer than 9 characters", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    maxDuration: searchMapsValues.invalidMaxDurationLength,
+                });
+                assert.equal(response.status, "toolongmaxduration");
+            });
+        });
+        describe("invalid minDuration character length searchMaps()", async function () {
+            it("should return 'toolongminduration' if minDuration is longer than 9 characters", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    minDuration: searchMapsValues.invalidMinDurationLength,
+                });
+                assert.equal(response.status, "toolongminduration");
             });
         });
     });

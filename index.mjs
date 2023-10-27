@@ -600,6 +600,9 @@ class BeatSaverAPI {
             return this.apiResponse("invalidpage");
         }
         page = Number(page);
+        if (page.toString().length > 18) {
+            return this.apiResponse("toolongpage");
+        }
         if (filters != null) {
             //booleans
             for (var boolean in checkBooleans) {
@@ -623,7 +626,7 @@ class BeatSaverAPI {
 
                     //check number character length
                     if (checkNumberLengths[number] !== undefined && filters[number].toString().length > checkNumberLengths[number].limit) {
-                        return this.apiResponse(checkNumberLengths[number]);
+                        return this.apiResponse(checkNumberLengths[number].error);
                     }
                 }
             }
