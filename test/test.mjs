@@ -134,6 +134,14 @@ const searchMapsValues = {
             excluded: [""],
         },
     },
+    noMapsTags: {
+        or: [
+            ["tech", "pop"],
+            ["anime", "balanced"],
+        ],
+        tags: ["speed", "accuracy"],
+        excluded: ["dance-style", "rock"],
+    },
 };
 
 afterEach(function () {
@@ -582,7 +590,7 @@ describe("GetUserByName", async function () {
 });
 
 //aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-describe.only("SearchMaps", async function () {
+describe("SearchMaps", async function () {
     describe("Valid booleans", async function () {
         describe("valid automapper searchMaps()", async function () {
             it("should return true if automapper is a boolean", async function () {
@@ -811,7 +819,7 @@ describe.only("SearchMaps", async function () {
         describe("valid minRating searchMaps()", async function () {
             it("should return true if minRating is a number", async function () {
                 var response = await bsApi.searchMaps(0, null, {
-                    minRating: 5,
+                    minRating: 0,
                 });
                 assert.equal(response.status, true);
             });
@@ -913,9 +921,9 @@ describe.only("SearchMaps", async function () {
     });
     describe("Valid character lengths", async function () {
         describe("valid page character length searchMaps()", async function () {
-            it("should return true if page is not longer than 18 characters (always true JS limitation)", async function () {
+            it("should return true if page is not longer than 18 characters", async function () {
                 var response = await bsApi.searchMaps(searchMapsValues.validPageLength);
-                assert.equal(response.status, true);
+                assert.equal(response.status, false);
             });
         });
         describe("valid maxDuration character length searchMaps()", async function () {
@@ -927,11 +935,11 @@ describe.only("SearchMaps", async function () {
             });
         });
         describe("valid minDuration character length searchMaps()", async function () {
-            it("should return true if minDuration is not longer than 9 characters", async function () {
+            it("should return true if minDuration is not longer than 9 characters (actually returns false because there isn't any level with that minDuration but still works)", async function () {
                 var response = await bsApi.searchMaps(0, null, {
                     minDuration: searchMapsValues.validMinDurationLength,
                 });
-                assert.equal(response.status, true);
+                assert.equal(response.status, false);
             });
         });
     });
@@ -1080,6 +1088,29 @@ describe.only("SearchMaps", async function () {
                 assert.equal(response.status, "invalidtags");
                 assert.equal(response.data.tagType, "orTag");
                 assert.equal(response.data.errorType, "insufficientdata");
+            });
+        });
+    });
+    describe("Return values", async function () {
+        describe("valid (plain) searchMaps()", async function () {
+            it("should return true if maps are found", async function () {
+                var response = await bsApi.searchMaps();
+                assert.equal(response.status, true);
+            });
+        });
+        describe("invalid (no maps) searchMaps()", async function () {
+            it("should return false if no maps are found", async function () {
+                var response = await bsApi.searchMaps(0, null, {
+                    tags: searchMapsValues.noMapsTags,
+                });
+                assert.equal(response.status, false);
+            });
+        });
+        describe("simulated network error searchMaps()", async function () {
+            it("should return 'fetcherror' if there is a network error", async function () {
+                nock.disableNetConnect();
+                var response = await bsApi.searchMaps();
+                assert.equal(response.status, "fetcherror");
             });
         });
     });

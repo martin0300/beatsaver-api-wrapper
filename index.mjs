@@ -37,6 +37,7 @@ const apiURLs = {
     getMapsByPlayCount: "/maps/plays/",
     getUserByID: "/users/id/",
     getUserByName: "/users/name/",
+    searchMaps: "/search/text/",
 };
 const sortOptions = ["FIRST_PUBLISHED", "UPDATED", "LAST_PUBLISHED", "CREATED", "CURATED"];
 
@@ -758,7 +759,19 @@ class BeatSaverAPI {
             };
         }
 
-        return this.apiResponse(true);
+        try {
+            var response = await this.axiosInstance.get(`${apiURLs.searchMaps}/${page}`, {
+                params: filters,
+            });
+            switch (response.status) {
+                case 200:
+                    return this.apiResponse(response.data.docs.length == 0 ? false : true, response.data.docs.length == 0 ? null : response.data);
+                default:
+                    return this.unhandledError(response.status);
+            }
+        } catch (error) {
+            return this.handleGenericErrors(error);
+        }
     }
 }
 
