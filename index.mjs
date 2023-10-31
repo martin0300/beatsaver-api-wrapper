@@ -38,6 +38,7 @@ const apiURLs = {
     getUserByID: "/users/id/",
     getUserByName: "/users/name/",
     searchMaps: "/search/text/",
+    getVotes: "/vote",
 };
 const sortOptions = ["FIRST_PUBLISHED", "UPDATED", "LAST_PUBLISHED", "CREATED", "CURATED"];
 
@@ -770,6 +771,37 @@ class BeatSaverAPI {
             }
         } catch (error) {
             return this.handleGenericErrors(error);
+        }
+    }
+
+    /*
+    Returns "fetcherror" in case of any network errors.
+    Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
+    Returns true if maps has been found since the since date.
+    Returns false if no maps has been found since the since date.
+    Returns "invaliddate" if the date is not in the correct format. (YYYY-MM-DDTHH:MM:SS+00:00) (Minimum year is 1970, Maximum is 9999)
+    */
+    async getVotes(since) {
+        if (!this.checkDate(since)) {
+            return this.apiResponse("invaliddate");
+        }
+        try {
+            var response = await this.axiosInstance.get(`${apiURLs.getVotes}?since=${encodeURIComponent(since)}`);
+            switch (response.status) {
+                case 200:
+                    return this.apiResponse(response.data.length == 0 ? false : true, response.data.length == 0 ? null : response.data);
+
+                default:
+                    return this.unhandledError(response.status);
+            }
+        } catch (error) {
+            switch (error.code) {
+                case "ERR_BAD_REQUEST":
+                    return this.apiResponse(false);
+
+                default:
+                    return this.handleGenericErrors(error);
+            }
         }
     }
 }

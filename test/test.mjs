@@ -168,6 +168,11 @@ const searchMapsValues = {
     },
 };
 
+const getVotesValues = {
+    validDate: "2021-10-20T15:30:00+00:00",
+    invalidDate: "1969-12-31T23:59:59+00:00",
+};
+
 afterEach(function () {
     nock.enableNetConnect();
 });
@@ -1136,6 +1141,29 @@ describe("SearchMaps", async function () {
                 var response = await bsApi.searchMaps();
                 assert.equal(response.status, "fetcherror");
             });
+        });
+    });
+});
+
+describe.only("GetVotes", async function () {
+    describe("valid getVotes()", async function () {
+        it("should return true if maps are found since the since date", async function () {
+            this.timeout(6000);
+            var response = await bsApi.getVotes(getVotesValues.validDate);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("invalid date getVotes()", async function () {
+        it("should return 'invaliddate' if since date is invalid", async function () {
+            var response = await bsApi.getVotes(getVotesValues.invalidDate);
+            assert.equal(response.status, "invaliddate");
+        });
+    });
+    describe("simulated network error getVotes()", async function () {
+        it("should return 'fetcherror' if there is a network error", async function () {
+            nock.disableNetConnect();
+            var response = await bsApi.getVotes(getVotesValues.validDate);
+            assert.equal(response.status, "fetcherror");
         });
     });
 });
