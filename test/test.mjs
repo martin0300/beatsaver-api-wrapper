@@ -173,6 +173,14 @@ const getVotesValues = {
     invalidDate: "1969-12-31T23:59:59+00:00",
 };
 
+const getLatestPlaylistsValues = {
+    validDate: "2022-10-20T15:30:00+00:00",
+    noPlaylistsDate: "2009-10-20T15:30:00+00:00",
+    invalidDate: "1969-12-31T23:59:59+00:00",
+    validSortOption: "CREATED",
+    invalidSortOption: "fdsfsfsd",
+};
+
 afterEach(function () {
     nock.enableNetConnect();
 });
@@ -1145,7 +1153,7 @@ describe("SearchMaps", async function () {
     });
 });
 
-describe.only("GetVotes", async function () {
+describe("GetVotes", async function () {
     describe("valid getVotes()", async function () {
         it("should return true if maps are found since the since date", async function () {
             this.timeout(6000);
@@ -1163,6 +1171,64 @@ describe.only("GetVotes", async function () {
         it("should return 'fetcherror' if there is a network error", async function () {
             nock.disableNetConnect();
             var response = await bsApi.getVotes(getVotesValues.validDate);
+            assert.equal(response.status, "fetcherror");
+        });
+    });
+});
+
+describe("GetLatestPlaylists", async function () {
+    describe("plain getLatestPlaylists()", async function () {
+        it("should return true and the playlists", async function () {
+            var response = await bsApi.getLatestPlaylists();
+            assert.equal(response.status, true);
+        });
+    });
+    describe("valid before date getLatestPlaylists()", async function () {
+        it("should return true and the playlists created before the date", async function () {
+            var response = await bsApi.getLatestPlaylists(getLatestPlaylistsValues.validDate);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("valid after date getLatestPlaylists()", async function () {
+        it("should return true and the playlists created after the date", async function () {
+            var response = await bsApi.getLatestPlaylists(null, getLatestPlaylistsValues.validDate);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("valid sort option getLatestPlaylists()", async function () {
+        it("should return true and the playlists sorted by the sort option", async function () {
+            var response = await bsApi.getLatestPlaylists(null, null, getLatestPlaylistsValues.validSortOption);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("invalid before date getLatestPlaylists()", async function () {
+        it("should return 'invalidbeforedate' if the date is invalid", async function () {
+            var response = await bsApi.getLatestPlaylists(getLatestPlaylistsValues.invalidDate);
+            assert.equal(response.status, "invalidbeforedate");
+        });
+    });
+    describe("invalid after date getLatestPlaylists()", async function () {
+        it("should return 'invalidafterdate' if the date is invalid", async function () {
+            var response = await bsApi.getLatestPlaylists(null, getLatestPlaylistsValues.invalidDate);
+            assert.equal(response.status, "invalidafterdate");
+        });
+    });
+    describe("invalid sort option getLatestPlaylists()", async function () {
+        it("should return 'invalidsort' if the sort is invalid", async function () {
+            var response = await bsApi.getLatestPlaylists(null, null, getLatestPlaylistsValues.invalidSortOption);
+            assert.equal(response.status, "invalidsort");
+        });
+    });
+    describe("no playlists getLatestPlaylists()", async function () {
+        it("should return false if no playlists are found with the filters", async function () {
+            var response = await bsApi.getLatestPlaylists(getLatestPlaylistsValues.noPlaylistsDate);
+            assert.equal(response.status, false);
+        });
+    });
+    describe("simulated network error getLatestPlaylists()", async function () {
+        it("should return 'fetcherror' if there is a network error", async function () {
+            nock.disableNetConnect();
+            var response = await bsApi.getLatestPlaylists();
             assert.equal(response.status, "fetcherror");
         });
     });

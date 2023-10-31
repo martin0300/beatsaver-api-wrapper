@@ -39,6 +39,7 @@ const apiURLs = {
     getUserByName: "/users/name/",
     searchMaps: "/search/text/",
     getVotes: "/vote",
+    getLatestPlaylists: "/playlists/latest",
 };
 const sortOptions = ["FIRST_PUBLISHED", "UPDATED", "LAST_PUBLISHED", "CREATED", "CURATED"];
 
@@ -102,6 +103,9 @@ const checkDates = {
     from: "invalidfromdate",
     to: "invalidtodate",
 };
+//end of search stuff
+
+const getLatestPlaylistsSortOptions = ["UPDATED", "SONGS_UPDATED", "CREATED"];
 
 class BeatSaverAPI {
     constructor(customUserAgent = null) {
@@ -578,7 +582,7 @@ class BeatSaverAPI {
 
     SORT ERRORS:
     Returns "invalidtags" and the details about the error as data if any of the tags are invalid. (check in function)
-    Returns "invalidsortorder" if sortOrder is a valid sort option. (Latest, Relevance, Rating, Curated) (check in function)
+    Returns "invalidsortorder" if sortOrder is not a valid sort option. (Latest, Relevance, Rating, Curated) (check in function)
 
     RETURN VALUES:
     Returns true if there are maps found with the filters.
@@ -786,7 +790,11 @@ class BeatSaverAPI {
             return this.apiResponse("invaliddate");
         }
         try {
-            var response = await this.axiosInstance.get(`${apiURLs.getVotes}?since=${encodeURIComponent(since)}`);
+            var response = await this.axiosInstance.get(apiURLs.getVotes, {
+                params: {
+                    since: since,
+                },
+            });
             switch (response.status) {
                 case 200:
                     return this.apiResponse(response.data.length == 0 ? false : true, response.data.length == 0 ? null : response.data);
@@ -802,6 +810,45 @@ class BeatSaverAPI {
                 default:
                     return this.handleGenericErrors(error);
             }
+        }
+    }
+
+    /*
+    Returns "fetcherror" in case of any network errors.
+    Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
+    Returns true if playlists are found.
+    Returns false if no playlists are found.
+    Returns "invalidbeforedate" if before date is not in the correct format. (YYYY-MM-DDTHH:MM:SS+00:00) (Minimum year is 1970, Maximum is 9999)
+    Returns "invalidafterdate" if after date is not in the correct format. (YYYY-MM-DDTHH:MM:SS+00:00) (Minimum year is 1970, Maximum is 9999)
+    Returns "invalidsort" if sort is not a valid sort option. (UPDATED, SONGS_UPDATED, CREATED)
+    */
+    async getLatestPlaylists(before = null, after = null, sort = null) {
+        if (before !== null && !this.checkDate(before)) {
+            return this.apiResponse("invalidbeforedate");
+        }
+        if (after !== null && !this.checkDate(after)) {
+            return this.apiResponse("invalidafterdate");
+        }
+        if (sort !== null && !getLatestPlaylistsSortOptions.includes(sort)) {
+            return this.apiResponse("invalidsort");
+        }
+        try {
+            var response = await this.axiosInstance.get(apiURLs.getLatestPlaylists, {
+                params: {
+                    ...(before != null ? { before } : {}),
+                    ...(after != null ? { after } : {}),
+                    ...(sort != null ? { sort } : {}),
+                },
+            });
+            switch (response.status) {
+                case 200:
+                    return this.apiResponse(response.data.docs.length == 0 ? false : true, response.data.docs.length == 0 ? null : response.data);
+
+                default:
+                    return this.unhandledError(response.status);
+            }
+        } catch (error) {
+            return this.handleGenericErrors(error);
         }
     }
 }
