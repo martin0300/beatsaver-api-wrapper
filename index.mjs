@@ -40,6 +40,7 @@ const apiURLs = {
     searchMaps: "/search/text/",
     getVotes: "/vote",
     getLatestPlaylists: "/playlists/latest",
+    searchPlaylists: "/playlists/search/",
 };
 const sortOptions = ["FIRST_PUBLISHED", "UPDATED", "LAST_PUBLISHED", "CREATED", "CURATED"];
 
@@ -97,8 +98,10 @@ const checkNumberLengths = {
     },
 };
 
+//same as searchPlaylist()
 const searchSortOptions = ["Latest", "Relevance", "Rating", "Curated"];
 
+//same as searchPlaylist()
 const checkDates = {
     from: "invalidfromdate",
     to: "invalidtodate",
@@ -106,6 +109,19 @@ const checkDates = {
 //end of search stuff
 
 const getLatestPlaylistsSortOptions = ["UPDATED", "SONGS_UPDATED", "CREATED"];
+
+//playlist search
+const checkPlaylistBooleans = {
+    includeEmpty: "invalidincludeempty",
+    curated: "invalidcurated",
+    verified: "invalidverified",
+};
+
+const checkPlaylistNumbers = {
+    maxNps: "invalidmaxnps",
+    minNps: "invalidminnps",
+};
+//end of playlist search stuff
 
 class BeatSaverAPI {
     constructor(customUserAgent = null) {
@@ -844,6 +860,106 @@ class BeatSaverAPI {
                 case 200:
                     return this.apiResponse(response.data.docs.length == 0 ? false : true, response.data.docs.length == 0 ? null : response.data);
 
+                default:
+                    return this.unhandledError(response.status);
+            }
+        } catch (error) {
+            return this.handleGenericErrors(error);
+        }
+    }
+
+    /*
+    Checks are stored in objects at the top of the file or in the function (specified).
+
+    NETWORK ERRORS:
+    Returns "fetcherror" in case of any network errors.
+    Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
+
+    BOOLEAN ERRORS:
+    Returns "invalidcurated" if curated is not a boolean.
+    Returns "invalidincludeempty" if includeEmpty is not a boolean.
+    Returns "invalidverified" if verified is not a boolean.
+
+    DATE ERRORS:
+    Returns "invalidfromdate" if from date is not in the correct format. (YYYY-MM-DDTHH:MM:SS+00:00) (Minimum year is 1970, Maximum is 9999)
+    Returns "invalidtodate" if to date is not in the correct format. (YYYY-MM-DDTHH:MM:SS+00:00) (Minimum year is 1970, Maximum is 9999)
+
+    NUMBER ERRORS:
+    Returns "invalidmaxnps" if maxNps is not a number.
+    Returns "invalidminnps" if minNps is not a number.
+    Returns "invalidpage" if page is not a number. (check in function)
+
+    NUMBER LENGTH ERRORS:
+    Returns "toolongpage" if page is longer than 18 characters. (check in function)
+    
+    STRING ERRORS:
+    Returns "invalidquery" if query is not a string or empty. (check in function)
+
+    SORT ERRORS:
+    Returns "invalidsortorder" if sortOrder is not a valid sort option. (Latest, Relevance, Rating, Curated) (check in function)
+
+    RETURN VALUES:
+    Returns true if there are playlists found with the filters.
+    Returns false if there are no playlists found with the filters.
+    */
+    async searchPlaylists(page = 0, query = null, filters = null) {
+        if (query != null && isnullorempty(query)) {
+            return this.apiResponse("invalidquery");
+        }
+        if (isNaN(page)) {
+            return this.apiResponse("invalidpage");
+        }
+        page = Number(page);
+        if (page.toString().length > 18) {
+            return this.apiResponse("toolongpage");
+        }
+        if (filters != null) {
+            //booleans
+            for (var boolean in checkPlaylistBooleans) {
+                if (filters[boolean] !== undefined && typeof filters[boolean] != "boolean") {
+                    return this.apiResponse(checkPlaylistBooleans[boolean]);
+                }
+            }
+            //dates
+            for (var date in checkDates) {
+                if (filters[date] !== undefined && !this.checkDate(filters[date])) {
+                    return this.apiResponse(checkDates[date]);
+                }
+            }
+            //numbers
+            for (var number in checkPlaylistNumbers) {
+                if (filters[number] !== undefined && isNaN(filters[number])) {
+                    return this.apiResponse(checkPlaylistNumbers[number]);
+                } else if (filters[number] !== undefined && !isNaN(filters[number])) {
+                    filters[number] = Number(filters[number]);
+                }
+            }
+            //sort options
+            if (filters.sortOrder !== undefined && !searchSortOptions.includes(filters.sortOrder)) {
+                return this.apiResponse("invalidsortorder");
+            }
+
+            if (query != null) {
+                //add query
+                filters["q"] = query;
+            }
+            if (filters.sortOrder === undefined) {
+                filters.sortOrder = "Latest";
+            }
+        } else {
+            //sort order needs to be defined (not copied (fully))
+            filters = {
+                sortOrder: "Latest",
+                ...(query != null ? { q: query } : {}),
+            };
+        }
+        try {
+            var response = await this.axiosInstance.get(`${apiURLs.searchPlaylists}/${page}`, {
+                params: filters,
+            });
+            switch (response.status) {
+                case 200:
+                    return this.apiResponse(response.data.docs.length == 0 ? false : true, response.data.docs.length == 0 ? null : response.data);
                 default:
                     return this.unhandledError(response.status);
             }

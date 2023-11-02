@@ -181,6 +181,15 @@ const getLatestPlaylistsValues = {
     invalidSortOption: "fdsfsfsd",
 };
 
+const searchPlaylistsValues = {
+    validDate: "2022-10-20T15:30:00+00:00",
+    invalidDate: "1969-12-31T23:59:59+00:00",
+    validPageLength: 99999999999999999,
+    invalidPageLength: 9999999999999999999,
+    validSortOrder: "Rating",
+    invalidSortOrder: "notarealsortorder",
+};
+
 afterEach(function () {
     nock.enableNetConnect();
 });
@@ -1230,6 +1239,222 @@ describe("GetLatestPlaylists", async function () {
             nock.disableNetConnect();
             var response = await bsApi.getLatestPlaylists();
             assert.equal(response.status, "fetcherror");
+        });
+    });
+});
+
+describe("SearchPlaylists", async function () {
+    describe("Valid booleans", async function () {
+        describe("valid curated searchPlaylists()", async function () {
+            it("should return true if curated is a boolean", async function () {
+                var response = await bsApi.searchPlaylists(0, null, {
+                    curated: true,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid includeEmpty searchPlaylists()", async function () {
+            it("should return true if includeEmpty is a boolean", async function () {
+                var response = await bsApi.searchPlaylists(0, null, {
+                    includeEmpty: true,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid verified searchPlaylists()", async function () {
+            it("should return true if verified is a boolean", async function () {
+                var response = await bsApi.searchPlaylists(0, null, {
+                    verified: true,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+    });
+    describe("Invalid booleans", async function () {
+        describe("invalid curated searchPlaylists()", async function () {
+            it("should return 'invalidcurated' if curated isn't a boolean", async function () {
+                var response = await bsApi.searchPlaylists(0, null, {
+                    curated: "invalid",
+                });
+                assert.equal(response.status, "invalidcurated");
+            });
+        });
+        describe("invalid includeEmpty searchPlaylists()", async function () {
+            it("should return 'invalidincludeempty' if includeEmpty isn't a boolean", async function () {
+                var response = await bsApi.searchPlaylists(0, null, {
+                    includeEmpty: "invalid",
+                });
+                assert.equal(response.status, "invalidincludeempty");
+            });
+        });
+        describe("invalid verified searchPlaylists()", async function () {
+            it("should return 'invalidverified' if verified isn't a boolean", async function () {
+                var response = await bsApi.searchPlaylists(0, null, {
+                    verified: "invalid",
+                });
+                assert.equal(response.status, "invalidverified");
+            });
+        });
+    });
+    describe("Valid date", async function () {
+        describe("valid from date searchPlaylists()", async function () {
+            it("should return true if the from date is valid", async function () {
+                var response = await bsApi.searchPlaylists(0, null, {
+                    from: searchPlaylistsValues.validDate,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid to date searchPlaylists()", async function () {
+            it("should return true if the to date is valid", async function () {
+                var response = await bsApi.searchPlaylists(0, null, {
+                    to: searchPlaylistsValues.validDate,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+    });
+    describe("Invalid date", async function () {
+        describe("invalid from date searchPlaylists()", async function () {
+            it("should return 'invalidfromdate' if from date is not in the correct format", async function () {
+                var response = await bsApi.searchPlaylists(0, null, {
+                    from: searchPlaylistsValues.invalidDate,
+                });
+                assert.equal(response.status, "invalidfromdate");
+            });
+        });
+        describe("invalid to date searchPlaylists()", async function () {
+            it("should return 'invalidtodate' if to date is not in the correct format", async function () {
+                var response = await bsApi.searchPlaylists(0, null, {
+                    to: searchPlaylistsValues.invalidDate,
+                });
+                assert.equal(response.status, "invalidtodate");
+            });
+        });
+    });
+    describe("Valid numbers", async function () {
+        describe("valid maxNps searchPlaylists()", async function () {
+            it("should return true if maxNps is a number", async function () {
+                var response = await bsApi.searchPlaylists(0, null, {
+                    maxNps: 5,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid minNps searchPlaylists()", async function () {
+            it("should return true if minNps is a number", async function () {
+                var response = await bsApi.searchPlaylists(0, null, {
+                    minNps: 5,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("valid page searchPlaylists()", async function () {
+            it("should return true if page is a number", async function () {
+                var response = await bsApi.searchPlaylists(0);
+                assert.equal(response.status, true);
+            });
+        });
+    });
+    describe("Invalid numbers", async function () {
+        describe("invalid maxNps searchPlaylists()", async function () {
+            it("should return 'invalidmaxnps' if maxNps isn't a number", async function () {
+                var response = await bsApi.searchPlaylists(0, null, {
+                    maxNps: "invalid",
+                });
+                assert.equal(response.status, "invalidmaxnps");
+            });
+        });
+        describe("invalid minNps searchPlaylists()", async function () {
+            it("should return 'invalidminnps' if minNps isn't a number", async function () {
+                var response = await bsApi.searchPlaylists(0, null, {
+                    minNps: "invalid",
+                });
+                assert.equal(response.status, "invalidminnps");
+            });
+        });
+        describe("invalid page searchPlaylists()", async function () {
+            it("should return 'invalidpage' if page isn't a number", async function () {
+                var response = await bsApi.searchPlaylists("invalid");
+                assert.equal(response.status, "invalidpage");
+            });
+        });
+    });
+    describe("Valid character lengths", async function () {
+        describe("valid page character length searchPlaylists()", async function () {
+            it("should return true if page is not longer than 18 characters", async function () {
+                var response = await bsApi.searchPlaylists(searchPlaylistsValues.validPageLength);
+                assert.equal(response.status, false);
+            });
+        });
+    });
+    describe("Invalid character lengths", async function () {
+        describe("invalid page character length searchPlaylists()", async function () {
+            it("should return 'toolongpage' if page is longer than 18 characters", async function () {
+                var response = await bsApi.searchPlaylists(searchPlaylistsValues.invalidPageLength);
+                assert.equal(response.status, "toolongpage");
+            });
+        });
+    });
+    describe("Valid strings", async function () {
+        describe("valid query searchPlaylists()", async function () {
+            it("should return true if query is a valid string", async function () {
+                var response = await bsApi.searchPlaylists(0, "test");
+                assert.equal(response.status, true);
+            });
+        });
+    });
+    describe("Invalid strings", async function () {
+        describe("invalid query not a string searchPlaylists()", async function () {
+            it("should return 'invalidquery' if query is not a string", async function () {
+                var response = await bsApi.searchPlaylists(0, false);
+                assert.equal(response.status, "invalidquery");
+            });
+        });
+        describe("invalid query empty string searchPlaylists()", async function () {
+            it("should return 'invalidquery' if query is empty", async function () {
+                var response = await bsApi.searchPlaylists(0, "");
+                assert.equal(response.status, "invalidquery");
+            });
+        });
+    });
+    describe("Sort order", async function () {
+        describe("valid sortOrder searchPlaylists()", async function () {
+            it("should return true if sortOrder is a valid sort option", async function () {
+                var response = await bsApi.searchPlaylists(0, null, {
+                    sortOrder: searchPlaylistsValues.validSortOrder,
+                });
+                assert.equal(response.status, true);
+            });
+        });
+        describe("invalid sortOrder searchPlaylists()", async function () {
+            it("should return 'invalidsortorder' if sortOrder is an invalid sort option", async function () {
+                var response = await bsApi.searchPlaylists(0, null, {
+                    sortOrder: searchPlaylistsValues.invalidSortOrder,
+                });
+                assert.equal(response.status, "invalidsortorder");
+            });
+        });
+    });
+    describe("Return values", async function () {
+        describe("valid (plain) searchPlaylists()", async function () {
+            it("should return true if playlists are found", async function () {
+                var response = await bsApi.searchPlaylists();
+                assert.equal(response.status, true);
+            });
+        });
+        describe("invalid (no maps) searchPlaylists()", async function () {
+            it("should return false if no playlists are found", async function () {
+                var response = await bsApi.searchPlaylists(0, "nonexistantplaylist");
+                assert.equal(response.status, false);
+            });
+        });
+        describe("simulated network error searchPlaylists()", async function () {
+            it("should return 'fetcherror' if there is a network error", async function () {
+                nock.disableNetConnect();
+                var response = await bsApi.searchPlaylists();
+                assert.equal(response.status, "fetcherror");
+            });
         });
     });
 });
