@@ -190,6 +190,28 @@ const searchPlaylistsValues = {
     invalidSortOrder: "notarealsortorder",
 };
 
+/*
+playlistID 82685: Teminite Pack by Alphabeat (https://beatsaver.com/playlists/82685)
+*/
+const getPlaylistByIDValues = {
+    validPlaylistID: 82685,
+    invalidPlaylistID: 1,
+    invalidPlaylistIDLength: 9999999999,
+    invalidPageLength: 9999999999999999999,
+};
+
+/*
+userID 5122: Alphabeat (https://beatsaver.com/profile/5122)
+userID 171598: martin0300 (https://beatsaver.com/profile/171598)
+*/
+const getPlaylistsByUserIDValues = {
+    validUserID: 5122,
+    invalidUserID: 0,
+    noPlaylistsUserID: 171598,
+    invalidUserIDLength: 9999999999,
+    invalidPageLength: 9999999999999999999,
+};
+
 afterEach(function () {
     nock.enableNetConnect();
 });
@@ -225,15 +247,6 @@ describe("MapInfo", async function () {
         });
     });
 });
-
-//nah
-/*
-//wait
-before(function (done) {
-    setTimeout(function () {
-        done();
-    }, 1000);
-});*/
 
 describe("MapInfoFromList", async function () {
     describe("valid getMapInfoFromList()", async function () {
@@ -1455,6 +1468,80 @@ describe("SearchPlaylists", async function () {
                 var response = await bsApi.searchPlaylists();
                 assert.equal(response.status, "fetcherror");
             });
+        });
+    });
+});
+
+describe("GetPlaylistByID", async function () {
+    describe("valid getPlaylistByID()", async function () {
+        it("should return true and the playlist data", async function () {
+            var response = await bsApi.getPlaylistByID(getPlaylistByIDValues.validPlaylistID);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("invalid getPlaylistByID()", async function () {
+        it("should return false if playlist doesn't exist", async function () {
+            var response = await bsApi.getPlaylistByID(getPlaylistByIDValues.invalidPlaylistID);
+            assert.equal(response.status, false);
+        });
+    });
+    describe("too long playlistID getPlaylistByID()", async function () {
+        it("should return 'toolongid' if playlistID is longer than 9 characters", async function () {
+            var response = await bsApi.getPlaylistByID(getPlaylistByIDValues.invalidPlaylistIDLength);
+            assert.equal(response.status, "toolongid");
+        });
+    });
+    describe("too long page getPlaylistByID()", async function () {
+        it("should return 'toolongpage' if page is longer than 18 characters", async function () {
+            var response = await bsApi.getPlaylistByID(getPlaylistByIDValues.validPlaylistID, getPlaylistByIDValues.invalidPageLength);
+            assert.equal(response.status, "toolongpage");
+        });
+    });
+    describe("simulated network error getPlaylistByID()", async function () {
+        it("should return 'fetcherror' if there is a network error", async function () {
+            nock.disableNetConnect();
+            var response = await bsApi.getPlaylistByID(getPlaylistByIDValues.validPlaylistID);
+            assert.equal(response.status, "fetcherror");
+        });
+    });
+});
+
+describe("GetPlaylistsByUserID", async function () {
+    describe("valid getPlaylistsByUserID()", async function () {
+        it("should return true and the playlists if user has been found and has playlists", async function () {
+            var response = await bsApi.getPlaylistsByUserID(getPlaylistsByUserIDValues.validUserID);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("invalid getPlaylistsByUserID()", async function () {
+        it("should return false if the user doesn't exist", async function () {
+            var response = await bsApi.getPlaylistsByUserID(getPlaylistsByUserIDValues.invalidUserID);
+            assert.equal(response.status, false);
+        });
+    });
+    describe("no playlists getPlaylistsByUserID()", async function () {
+        it("should return false if the user doesn't have playlists", async function () {
+            var response = await bsApi.getPlaylistsByUserID(getPlaylistsByUserIDValues.noPlaylistsUserID);
+            assert.equal(response.status, false);
+        });
+    });
+    describe("too long userID getPlaylistsByUserID()", async function () {
+        it("should return 'toolongid' if userID is longer than 9 characters", async function () {
+            var response = await bsApi.getPlaylistsByUserID(getPlaylistsByUserIDValues.invalidUserIDLength);
+            assert.equal(response.status, "toolongid");
+        });
+    });
+    describe("too long page getPlaylistsByUserID()", async function () {
+        it("should return 'toolongpage' if page is longer than 18 characters", async function () {
+            var response = await bsApi.getPlaylistsByUserID(getPlaylistsByUserIDValues.validUserID, getPlaylistsByUserIDValues.invalidPageLength);
+            assert.equal(response.status, "toolongpage");
+        });
+    });
+    describe("simulated network error getPlaylistsByUserID()", async function () {
+        it("should return 'fetcherror' if there is a network error", async function () {
+            nock.disableNetConnect();
+            var response = await bsApi.getPlaylistsByUserID(getPlaylistsByUserIDValues.validUserID);
+            assert.equal(response.status, "fetcherror");
         });
     });
 });

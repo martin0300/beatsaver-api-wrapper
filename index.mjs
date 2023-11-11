@@ -41,6 +41,8 @@ const apiURLs = {
     getVotes: "/vote",
     getLatestPlaylists: "/playlists/latest",
     searchPlaylists: "/playlists/search/",
+    getPlaylistByID: "/playlists/id/",
+    getPlaylistsByUserID: "/playlists/user/",
 };
 const sortOptions = ["FIRST_PUBLISHED", "UPDATED", "LAST_PUBLISHED", "CREATED", "CURATED"];
 
@@ -957,6 +959,91 @@ class BeatSaverAPI {
             var response = await this.axiosInstance.get(`${apiURLs.searchPlaylists}/${page}`, {
                 params: filters,
             });
+            switch (response.status) {
+                case 200:
+                    return this.apiResponse(response.data.docs.length == 0 ? false : true, response.data.docs.length == 0 ? null : response.data);
+                default:
+                    return this.unhandledError(response.status);
+            }
+        } catch (error) {
+            return this.handleGenericErrors(error);
+        }
+    }
+
+    /*
+    Returns "fetcherror" in case of any network errors.
+    Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
+
+    Returns "invalidid" if playlistID is not a number.
+    Returns "invalidpage" if page is not a number.
+    Returns "toolongid" if playlistID is longer than 9 characters.
+    Returns "toolongpage" if page is longer than 18 characters.
+    Returns false if no playlist has been found.
+    Returns true and the playlist if the playlist has been found.
+    */
+    async getPlaylistByID(playlistID, page = 0) {
+        if (isNaN(playlistID)) {
+            return this.apiResponse("invalidid");
+        }
+        if (isNaN(page)) {
+            return this.apiResponse("invalidpage");
+        }
+        playlistID = Number(playlistID);
+        page = Number(page);
+        if (playlistID.toString().length > 9) {
+            return this.apiResponse("toolongid");
+        }
+        if (page.toString().length > 18) {
+            return this.apiResponse("toolongpage");
+        }
+        try {
+            var response = await this.axiosInstance.get(`${apiURLs.getPlaylistByID}/${playlistID}/${page}`);
+            switch (response.status) {
+                case 200:
+                    return this.apiResponse(true, response.data);
+
+                default:
+                    return this.unhandledError(response.status);
+            }
+        } catch (error) {
+            switch (error.code) {
+                case "ERR_BAD_REQUEST":
+                    return this.apiResponse(false);
+
+                default:
+                    return this.handleGenericErrors(error);
+            }
+        }
+    }
+
+    /*
+    Returns "fetcherror" in case of any network errors.
+    Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
+
+    Returns "invalidid" if userID is not a number.
+    Returns "invalidpage" if page is not a number.
+    Returns "toolongid" if userID is longer than 9 characters.
+    Returns "toolongpage" if page is longer than 18 characters.
+    Returns true and the playlists if the user has been found and has playlists.
+    Returns false if no playlists or user have been found.
+    */
+    async getPlaylistsByUserID(userID, page = 0) {
+        if (isNaN(userID)) {
+            return this.apiResponse("invalidid");
+        }
+        if (isNaN(page)) {
+            return this.apiResponse("invalidpage");
+        }
+        userID = Number(userID);
+        page = Number(page);
+        if (userID.toString().length > 9) {
+            return this.apiResponse("toolongid");
+        }
+        if (page.toString().length > 18) {
+            return this.apiResponse("toolongpage");
+        }
+        try {
+            var response = await this.axiosInstance.get(`${apiURLs.getPlaylistsByUserID}/${userID}/${page}`);
             switch (response.status) {
                 case 200:
                     return this.apiResponse(response.data.docs.length == 0 ? false : true, response.data.docs.length == 0 ? null : response.data);
