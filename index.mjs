@@ -36,6 +36,7 @@ const apiURLs = {
     getLatestMaps: "/maps/latest",
     getMapsByPlayCount: "/maps/plays/",
     getUserByID: "/users/id/",
+    getUsersFromIDList: "/users/ids/",
     getUserByName: "/users/name/",
     searchMaps: "/search/text/",
     getVotes: "/vote",
@@ -521,6 +522,41 @@ class BeatSaverAPI {
                 default:
                     return this.handleGenericErrors(error);
             }
+        }
+    }
+
+    /*
+    i forgor about this one lol
+
+    Returns "fetcherror" in case of any network errors.
+    Returns "unhandlederror" and error code if the api call encounters some unhandled error code. For more information, please refer to the comments above unhandledError().
+    Returns false if no users are found.
+    Returns true if some of the users or all are found.
+    Returns "notanarray" if idList is not an array.
+    Returns "emptyarray" if the provided array is empty.
+    Returns "toolargearray" if idList has more items than 664.
+    */
+    async getUsersFromIDList(idList) {
+        if (!Array.isArray(idList)) {
+            return this.apiResponse("notanarray");
+        }
+        if (idList.length == 0) {
+            return this.apiResponse("emptyarray");
+        }
+        if (idList.length > 664) {
+            return this.apiResponse("toolargearray");
+        }
+        try {
+            var response = await this.axiosInstance.get(`${apiURLs.getUsersFromIDList}${idList.join(",")}`);
+            switch (response.status) {
+                case 200:
+                    return this.apiResponse(response.data.length == 0 ? false : true, response.data.length == 0 ? null : response.data);
+
+                default:
+                    return this.unhandledError(response.status);
+            }
+        } catch (error) {
+            return this.handleGenericErrors(error);
         }
     }
 

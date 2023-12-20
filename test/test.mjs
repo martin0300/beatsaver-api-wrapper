@@ -105,6 +105,18 @@ const getUserByIDValues = {
 };
 
 /*
+userID 58338: Joetastic (https://beatsaver.com/profile/58338)
+userID 171598: martin0300 (https://beatsaver.com/profile/171598)
+*/
+const getUsersFromIDListValues = {
+    validIDList: [58338, 171598],
+    halfValidIDList: [58338, 43423],
+    invalidIDList: [43432543],
+    limitList: new Array(664).fill(null),
+    tooLargeList: new Array(665).fill(null),
+};
+
+/*
 Joetastic (https://beatsaver.com/profile/58338)
 */
 const getUserByNameValues = {
@@ -615,6 +627,59 @@ describe("GetUserByID", async function () {
         it("should return 'fetcherror' if there is a network error", async function () {
             nock.disableNetConnect();
             var response = await bsApi.getUserByID(getUserByIDValues.validID);
+            assert.equal(response.status, "fetcherror");
+        });
+    });
+});
+
+describe("GetUsersFromIDList", async function () {
+    describe("valid getUsersFromIDList()", async function () {
+        it("should return true and user data if atleast one of the users are found", async function () {
+            var response = await bsApi.getUsersFromIDList(getUsersFromIDListValues.validIDList);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("invalid getUsersFromIDList()", async function () {
+        it("should return false if all IDs are invalid", async function () {
+            var response = await bsApi.getUsersFromIDList(getUsersFromIDListValues.invalidIDList);
+            assert.equal(response.status, false);
+        });
+    });
+    describe("half invalid getUsersFromIDList()", async function () {
+        it("should return true and user data if atleast one of the users are found", async function () {
+            var response = await bsApi.getUsersFromIDList(getUsersFromIDListValues.halfValidIDList);
+            assert.equal(response.status, true);
+        });
+    });
+    describe("empty list getUsersFromIDList()", async function () {
+        it("should return 'emptyarray' when list is empty", async function () {
+            var response = await bsApi.getUsersFromIDList([]);
+            assert.equal(response.status, "emptyarray");
+        });
+    });
+    describe("not an array getUsersFromIDList()", async function () {
+        it("should return 'notanarray' when the passed argument is not an array", async function () {
+            var response = await bsApi.getUsersFromIDList(null);
+            assert.equal(response.status, "notanarray");
+        });
+    });
+    describe("list max limit getUsersFromIDList()", async function () {
+        it("should succeed when the passed list is not larger than the max limit (664) and atleast one of the hashes are valid", async function () {
+            //if it's false it succeeded because my test array is 50 numbers (those are not valid hashes but that's not what i'm testing for)
+            var response = await bsApi.getUsersFromIDList(getUsersFromIDListValues.limitList);
+            assert.equal(response.status, false);
+        });
+    });
+    describe("too large array getUsersFromIDList()", async function () {
+        it("should return 'toolargearray' when the passed list is larger than the max limit (664)", async function () {
+            var response = await bsApi.getUsersFromIDList(getUsersFromIDListValues.tooLargeList);
+            assert.equal(response.status, "toolargearray");
+        });
+    });
+    describe("simulated network error getUsersFromIDList()", async function () {
+        it("should return 'fetcherror' if there is a network error", async function () {
+            nock.disableNetConnect();
+            var response = await bsApi.getUsersFromIDList(getUsersFromIDListValues.validIDList);
             assert.equal(response.status, "fetcherror");
         });
     });
