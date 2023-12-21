@@ -4,10 +4,13 @@ An api wrapper for Beatsaver.
 
 # Info
 
-Documentation is coming soon. For now you can use the comments in `main.mjs`.\
 The api wrapper will be released on npm after stable release.\
 Currently supports all get api endpoints specified by the Beatsaver api docs. (https://api.beatsaver.com/docs/index.html?url=./swagger.json) \
 OAuth/post endpoints will be coming soon.
+
+# Documentation
+
+Documentation is available on this repository's [wiki](https://github.com/martin0300/beatsaver-api-wrapper/wiki).
 
 # Tests and test dependencies
 
