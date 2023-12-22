@@ -697,7 +697,10 @@ class BeatSaverAPI {
         if (filters != null) {
             //booleans
             for (var boolean in checkBooleans) {
-                if (filters[boolean] !== undefined && typeof filters[boolean] != "boolean") {
+                if (filters[boolean] !== undefined && typeof filters[boolean] != "boolean" && boolean != "automapper") {
+                    return this.apiResponse(checkBooleans[boolean]);
+                } else if (filters[boolean] !== undefined && boolean == "automapper" && typeof filters[boolean] != "boolean" && filters[boolean] !== null) {
+                    //fix automapper null
                     return this.apiResponse(checkBooleans[boolean]);
                 }
             }
