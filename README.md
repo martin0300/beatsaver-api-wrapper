@@ -7,6 +7,14 @@ An api wrapper for Beatsaver.
 Currently supports all get api endpoints specified by the Beatsaver api docs. (https://api.beatsaver.com/docs/index.html?url=./swagger.json) \
 OAuth/post endpoints will be coming soon.
 
+# Installation
+
+The package is available on npm. You can install it using this command:
+
+```bash
+npm install beatsaver-api-wrapper
+```
+
 # Documentation
 
 Documentation is available on this repository's [wiki](https://github.com/martin0300/beatsaver-api-wrapper/wiki).
