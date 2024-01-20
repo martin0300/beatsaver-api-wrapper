@@ -24,8 +24,8 @@ SOFTWARE.
 
 import axios from "axios";
 
-const beatSaverAPIVersion = "1.0.0-Beta";
-const debug = true;
+const beatSaverAPIVersion = "1.0.0";
+const debug = false;
 const apiURLs = {
     mainAPIURL: "https://api.beatsaver.com",
     getMapInfoID: "/maps/id/",
